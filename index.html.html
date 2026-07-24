@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coaching Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16324F;
+    --ink-soft:#4C6A85;
+    --ball:#1B5FA8;
+    --ball-dark:#144A85;
+    --willow:#7FA8CE;
+    --willow-light:#E5EFF9;
+    --paper:#F6F9FC;
+    --paper-line:#DCE6F0;
+    --card:#FFFFFF;
+    --border:#D6E1EC;
+    --good:#3B6D11;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    padding:2rem 1.5rem 4rem;
+  }
+  .wrap{max-width:960px;margin:0 auto;}
+  header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:1rem;
+    margin-bottom:2rem;
+    flex-wrap:wrap;
+    gap:1rem;
+  }
+  header h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:2rem;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    margin:0.25rem 0 0;
+    color:var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .status-pill{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.75rem;
+    padding:0.35rem 0.7rem;
+    border-radius:20px;
+    background:var(--willow-light);
+    color:var(--ball-dark);
+    border:1px solid var(--willow);
+    white-space:nowrap;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:1.75rem;
+    margin-bottom:1.5rem;
+  }
+  .card h2{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:1.15rem;
+    margin:0 0 1.25rem;
+    padding-bottom:0.6rem;
+    border-bottom:1px dashed var(--paper-line);
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:1rem 1.25rem;
+  }
+  .field{display:flex;flex-direction:column;gap:0.35rem;}
+  .field.full{grid-column:1/-1;}
+  label{
+    font-size:0.78rem;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--ink-soft);
+  }
+  input,select,textarea{
+    font-family:'Inter',sans-serif;
+    font-size:0.95rem;
+    padding:0.6rem 0.7rem;
+    border:1px solid var(--border);
+    border-radius:6px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  input:focus,select:focus,textarea:focus{
+    outline:none;
+    border-color:var(--ball);
+    background:#fff;
+  }
+  .ratings{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1rem;
+    grid-column:1/-1;
+  }
+  .ratings .field input{
+    font-family:'IBM Plex Mono',monospace;
+    text-align:center;
+    font-weight:600;
+  }
+  textarea{resize:vertical;min-height:70px;font-family:'Inter',sans-serif;}
+  button{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:0.9rem;
+    padding:0.75rem 1.5rem;
+    border:none;
+    border-radius:6px;
+    background:var(--ball);
+    color:#fff;
+    cursor:pointer;
+    margin-top:1.25rem;
+  }
+  button:hover{background:var(--ball-dark);}
+  button:disabled{opacity:0.6;cursor:not-allowed;}
+  .msg{
+    font-size:0.85rem;
+    margin-top:0.75rem;
+    padding:0.6rem 0.8rem;
+    border-radius:6px;
+    display:none;
+  }
+  .msg.show{display:block;}
+  .msg.ok{background:#EAF3DE;color:var(--good);}
+  .msg.err{background:#FCEBEB;color:#791F1F;}
+  .filter-row{
+    display:flex;
+    gap:0.75rem;
+    align-items:center;
+    margin-bottom:1.25rem;
+    flex-wrap:wrap;
+  }
+  .filter-row select{flex:1;min-width:180px;}
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:0.88rem;
+  }
+  thead th{
+    text-align:left;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--ink-soft);
+    padding:0.5rem 0.6rem;
+    border-bottom:2px solid var(--ink);
+  }
+  tbody td{
+    padding:0.65rem 0.6rem;
+    border-bottom:1px solid var(--paper-line);
+    vertical-align:top;
+  }
+  tbody tr:hover{background:var(--willow-light);}
+  .figs{font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+  .empty{
+    text-align:center;
+    color:var(--ink-soft);
+    padding:2rem 1rem;
+    font-size:0.9rem;
+  }
+  .chart-wrap{position:relative;height:220px;margin-top:0.5rem;}
+  .export-btn{
+    background:transparent;
+    color:var(--ink);
+    border:1px solid var(--border);
+    margin-top:0;
+  }
+  .export-btn:hover{background:var(--willow-light);border-color:var(--willow);}
+  .card-head-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+    flex-wrap:wrap;
+    border-bottom:1px dashed var(--paper-line);
+    padding-bottom:0.6rem;
+    margin-bottom:1.25rem;
+  }
+  .card-head-row h2{border:none;margin:0;padding:0;}
+  @media (max-width:600px){
+    .grid{grid-template-columns:1fr;}
+    .ratings{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>Coaching log</h1>
+      <p>Session notes and figures, one entry at a time</p>
+    </div>
+    <span class="status-pill" id="statusPill">connecting…</span>
+  </header>
+
+  <div class="card">
+    <h2>New session</h2>
+    <form id="entryForm">
+      <div class="grid">
+        <div class="field">
+          <label for="studentName">Student</label>
+          <input list="studentList" id="studentName" name="studentName" placeholder="e.g. Arjun Patel" required>
+          <datalist id="studentList"></datalist>
+        </div>
+        <div class="field">
+          <label for="sessionDate">Session date</label>
+          <input type="date" id="sessionDate" name="sessionDate" required>
+        </div>
+
+        <div class="ratings">
+          <div class="field">
+            <label for="batting">Batting /10</label>
+            <input type="number" id="batting" name="batting" min="0" max="10" step="1">
+          </div>
+          <div class="field">
+            <label for="bowling">Bowling /10</label>
+            <input type="number" id="bowling" name="bowling" min="0" max="10" step="1">
+          </div>
+          <div class="field">
+            <label for="fielding">Fielding /10</label>
+            <input type="number" id="fielding" name="fielding" min="0" max="10" step="1">
+          </div>
+          <div class="field">
+            <label for="fitness">Fitness /10</label>
+            <input type="number" id="fitness" name="fitness" min="0" max="10" step="1">
+          </div>
+        </div>
+
+        <div class="field full">
+          <label for="finance">Finance</label>
+          <input type="text" id="finance" name="finance" placeholder="e.g. Paid - $50 cash">
+        </div>
+        <div class="field full">
+          <label for="comments">Comments</label>
+          <textarea id="comments" name="comments" placeholder="How the session went, what to work on next time"></textarea>
+        </div>
+      </div>
+
+      <button type="submit" id="submitBtn">Save session</button>
+      <div class="msg" id="formMsg"></div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="card-head-row">
+      <h2>Session history</h2>
+      <button type="button" class="export-btn" id="exportBtn">Export to Excel</button>
+    </div>
+    <div class="filter-row">
+      <select id="studentFilter">
+        <option value="">All students</option>
+      </select>
+    </div>
+    <div class="chart-wrap" id="chartWrap" style="display:none;">
+      <canvas id="trendChart" role="img" aria-label="Line chart of batting, bowling, fielding and fitness ratings over time for the selected student"></canvas>
+    </div>
+    <div id="tableWrap"></div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR075kUlqeEygo4SE4Oo74JEz1XpiRyrCsDRwMZjRMvSTGUmcjC3l7LTxxkB4kYyzvXA/exec";
+
+const statusPill = document.getElementById('statusPill');
+const form = document.getElementById('entryForm');
+const submitBtn = document.getElementById('submitBtn');
+const formMsg = document.getElementById('formMsg');
+const studentFilter = document.getElementById('studentFilter');
+const studentList = document.getElementById('studentList');
+const tableWrap = document.getElementById('tableWrap');
+const chartWrap = document.getElementById('chartWrap');
+let allRows = [];
+let trendChart = null;
+
+document.getElementById('sessionDate').valueAsDate = new Date();
+
+function showMsg(el, text, ok){
+  el.textContent = text;
+  el.className = 'msg show ' + (ok ? 'ok' : 'err');
+  setTimeout(()=>{ el.className = 'msg'; }, 4000);
+}
+
+function fmtDate(v){
+  if(!v) return '';
+  const d = new Date(v);
+  if(isNaN(d)) return v;
+  return d.toLocaleDateString('en-AU', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+async function loadData(){
+  try{
+    const res = await fetch(SCRIPT_URL);
+    const data = await res.json();
+    allRows = Array.isArray(data) ? data : [];
+    statusPill.textContent = 'connected · ' + allRows.length + ' sessions';
+    populateStudents();
+    renderTable();
+  }catch(err){
+    statusPill.textContent = 'connection failed';
+    tableWrap.innerHTML = '<div class="empty">Could not load session history. Check the sheet connection.</div>';
+  }
+}
+
+function populateStudents(){
+  const names = [...new Set(allRows.map(r => r.StudentName).filter(Boolean))].sort();
+  studentList.innerHTML = names.map(n => `<option value="${n}">`).join('');
+  const current = studentFilter.value;
+  studentFilter.innerHTML = '<option value="">All students</option>' +
+    names.map(n => `<option value="${n}">${n}</option>`).join('');
+  studentFilter.value = current;
+}
+
+function renderTable(){
+  const filtered = studentFilter.value
+    ? allRows.filter(r => r.StudentName === studentFilter.value)
+    : allRows;
+
+  const sorted = [...filtered].sort((a,b) => new Date(b.SessionDate) - new Date(a.SessionDate));
+
+  if(sorted.length === 0){
+    tableWrap.innerHTML = '<div class="empty">No sessions logged yet. Add the first one above.</div>';
+    chartWrap.style.display = 'none';
+    return;
+  }
+
+  tableWrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Student</th>
+          <th>Figures</th>
+          <th>Finance</th>
+          <th>Comments</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${sorted.map(r => `
+          <tr>
+            <td>${fmtDate(r.SessionDate)}</td>
+            <td>${r.StudentName || ''}</td>
+            <td class="figs">B ${r.Batting ?? '-'} · Bo ${r.Bowling ?? '-'} · F ${r.Fielding ?? '-'} · Fit ${r.Fitness ?? '-'}</td>
+            <td>${r.Finance || ''}</td>
+            <td>${r.Comments || ''}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+
+  if(studentFilter.value){
+    renderChart(sorted);
+  }else{
+    chartWrap.style.display = 'none';
+  }
+}
+
+function renderChart(rows){
+  const asc = [...rows].sort((a,b) => new Date(a.SessionDate) - new Date(b.SessionDate));
+  chartWrap.style.display = 'block';
+  const ctx = document.getElementById('trendChart');
+  if(trendChart) trendChart.destroy();
+  trendChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: asc.map(r => fmtDate(r.SessionDate)),
+      datasets: [
+        {label:'Batting', data: asc.map(r => Number(r.Batting) || null), borderColor:'#8B2635', backgroundColor:'#8B2635', tension:0.25},
+        {label:'Bowling', data: asc.map(r => Number(r.Bowling) || null), borderColor:'#2a78d6', backgroundColor:'#2a78d6', tension:0.25, borderDash:[4,3]},
+        {label:'Fielding', data: asc.map(r => Number(r.Fielding) || null), borderColor:'#1baf7a', backgroundColor:'#1baf7a', tension:0.25},
+        {label:'Fitness', data: asc.map(r => Number(r.Fitness) || null), borderColor:'#eda100', backgroundColor:'#eda100', tension:0.25, borderDash:[4,3]}
+      ]
+    },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      scales:{ y:{ min:0, max:10, ticks:{stepSize:2} } },
+      plugins:{ legend:{ position:'bottom', labels:{boxWidth:10, font:{size:11}} } }
+    }
+  });
+}
+
+studentFilter.addEventListener('change', renderTable);
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Saving…';
+
+  const payload = {
+    studentName: document.getElementById('studentName').value.trim(),
+    sessionDate: document.getElementById('sessionDate').value,
+    batting: document.getElementById('batting').value,
+    bowling: document.getElementById('bowling').value,
+    fielding: document.getElementById('fielding').value,
+    fitness: document.getElementById('fitness').value,
+    finance: document.getElementById('finance').value.trim(),
+    comments: document.getElementById('comments').value.trim()
+  };
+
+  try{
+    await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
+    showMsg(formMsg, 'Session saved.', true);
+    form.reset();
+    document.getElementById('sessionDate').valueAsDate = new Date();
+    await loadData();
+  }catch(err){
+    showMsg(formMsg, 'Could not save. Check your connection and try again.', false);
+  }finally{
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Save session';
+  }
+});
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  if(allRows.length === 0) return;
+  const ws = XLSX.utils.json_to_sheet(allRows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Sessions');
+  XLSX.writeFile(wb, 'coaching_log_export.xlsx');
+});
+
+loadData();
+</script>
+</body>
+</html>
