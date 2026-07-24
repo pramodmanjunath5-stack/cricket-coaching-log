@@ -9,195 +9,93 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#16324F;
-    --ink-soft:#4C6A85;
-    --ball:#1B5FA8;
-    --ball-dark:#144A85;
-    --willow:#7FA8CE;
-    --willow-light:#E5EFF9;
-    --paper:#F6F9FC;
-    --paper-line:#DCE6F0;
-    --card:#FFFFFF;
-    --border:#D6E1EC;
-    --good:#3B6D11;
+    --ink:#16324F; --ink-soft:#4C6A85;
+    --ball:#1B5FA8; --ball-dark:#144A85;
+    --willow:#7FA8CE; --willow-light:#E5EFF9;
+    --paper:#F6F9FC; --paper-line:#DCE6F0;
+    --card:#FFFFFF; --border:#D6E1EC;
+    --good:#2E7D32; --good-light:#E8F5E9;
+    --warn:#B02A2A; --warn-light:#FCEBEB;
   }
   *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:var(--paper);
-    color:var(--ink);
-    font-family:'Inter',sans-serif;
-    padding:2rem 1.5rem 4rem;
-  }
-  .wrap{max-width:960px;margin:0 auto;}
-  header{
-    display:flex;
-    align-items:flex-end;
-    justify-content:space-between;
-    border-bottom:2px solid var(--ink);
-    padding-bottom:1rem;
-    margin-bottom:2rem;
-    flex-wrap:wrap;
-    gap:1rem;
-  }
-  header h1{
-    font-family:'Fraunces',serif;
-    font-weight:600;
-    font-size:2rem;
-    margin:0;
-    letter-spacing:-0.01em;
-  }
-  header p{
-    margin:0.25rem 0 0;
-    color:var(--ink-soft);
-    font-size:0.95rem;
-  }
-  .status-pill{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:0.75rem;
-    padding:0.35rem 0.7rem;
-    border-radius:20px;
-    background:var(--willow-light);
-    color:var(--ball-dark);
-    border:1px solid var(--willow);
-    white-space:nowrap;
-  }
-  .card{
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:10px;
-    padding:1.75rem;
-    margin-bottom:1.5rem;
-  }
-  .card h2{
-    font-family:'Fraunces',serif;
-    font-weight:600;
-    font-size:1.15rem;
-    margin:0 0 1.25rem;
-    padding-bottom:0.6rem;
-    border-bottom:1px dashed var(--paper-line);
-  }
-  .grid{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:1rem 1.25rem;
-  }
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;padding:2rem 1.25rem 4rem;}
+  .wrap{max-width:880px;margin:0 auto;}
+  header{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:1rem;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;}
+  header h1{font-family:'Fraunces',serif;font-weight:600;font-size:1.9rem;margin:0;letter-spacing:-0.01em;}
+  header p{margin:0.25rem 0 0;color:var(--ink-soft);font-size:0.9rem;}
+  .status-pill{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;padding:0.35rem 0.7rem;border-radius:20px;background:var(--willow-light);color:var(--ball-dark);border:1px solid var(--willow);white-space:nowrap;}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;gap:0.75rem;flex-wrap:wrap;}
+  .toolbar h2{font-family:'Fraunces',serif;font-size:1.2rem;margin:0;}
+  button{font-family:'Inter',sans-serif;font-weight:600;font-size:0.88rem;padding:0.7rem 1.25rem;border:none;border-radius:7px;background:var(--ball);color:#fff;cursor:pointer;}
+  button:hover{background:var(--ball-dark);}
+  button:disabled{opacity:0.55;cursor:not-allowed;}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--border);}
+  .btn-ghost:hover{background:var(--willow-light);border-color:var(--willow);}
+  .btn-danger{background:transparent;color:var(--warn);border:1px solid #EFC9C9;}
+  .btn-danger:hover{background:var(--warn-light);}
+  .btn-sm{padding:0.5rem 0.85rem;font-size:0.82rem;}
+  .btn-block{width:100%;margin-top:0.5rem;}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.5rem;margin-bottom:1rem;}
+  .card h2,.card h3{font-family:'Fraunces',serif;font-weight:600;margin:0 0 1.1rem;}
+
+  .students-grid{display:grid;grid-template-columns:1fr;gap:0.9rem;}
+  .stu-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.25rem 1.4rem;}
+  .stu-top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:0.4rem;}
+  .stu-name{font-family:'Fraunces',serif;font-weight:600;font-size:1.15rem;}
+  .stu-meta{color:var(--ink-soft);font-size:0.82rem;margin-top:0.15rem;}
+  .stu-stats{display:flex;justify-content:space-between;align-items:baseline;margin-top:0.9rem;font-size:0.9rem;}
+  .stu-stats b{font-family:'IBM Plex Mono',monospace;font-size:1rem;}
+  .bar{height:8px;border-radius:5px;background:var(--paper-line);margin-top:0.5rem;overflow:hidden;}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--willow),var(--ball));border-radius:5px;}
+  .stu-actions{display:grid;grid-template-columns:1fr;gap:0.5rem;margin-top:1rem;}
+  .stu-actions .row2{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;}
+
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem 1.25rem;}
   .field{display:flex;flex-direction:column;gap:0.35rem;}
   .field.full{grid-column:1/-1;}
-  label{
-    font-size:0.78rem;
-    font-weight:600;
-    text-transform:uppercase;
-    letter-spacing:0.04em;
-    color:var(--ink-soft);
-  }
-  input,select,textarea{
-    font-family:'Inter',sans-serif;
-    font-size:0.95rem;
-    padding:0.6rem 0.7rem;
-    border:1px solid var(--border);
-    border-radius:6px;
-    background:var(--paper);
-    color:var(--ink);
-  }
-  input:focus,select:focus,textarea:focus{
-    outline:none;
-    border-color:var(--ball);
-    background:#fff;
-  }
-  .ratings{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:1rem;
-    grid-column:1/-1;
-  }
-  .ratings .field input{
-    font-family:'IBM Plex Mono',monospace;
-    text-align:center;
-    font-weight:600;
-  }
-  textarea{resize:vertical;min-height:70px;font-family:'Inter',sans-serif;}
-  button{
-    font-family:'Inter',sans-serif;
-    font-weight:600;
-    font-size:0.9rem;
-    padding:0.75rem 1.5rem;
-    border:none;
-    border-radius:6px;
-    background:var(--ball);
-    color:#fff;
-    cursor:pointer;
-    margin-top:1.25rem;
-  }
-  button:hover{background:var(--ball-dark);}
-  button:disabled{opacity:0.6;cursor:not-allowed;}
-  .msg{
-    font-size:0.85rem;
-    margin-top:0.75rem;
-    padding:0.6rem 0.8rem;
-    border-radius:6px;
-    display:none;
-  }
+  label{font-size:0.76rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);}
+  input,select,textarea{font-family:'Inter',sans-serif;font-size:0.95rem;padding:0.6rem 0.7rem;border:1px solid var(--border);border-radius:6px;background:var(--paper);color:var(--ink);width:100%;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ball);background:#fff;}
+  textarea{resize:vertical;min-height:70px;}
+  .ratings{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;grid-column:1/-1;}
+  .ratings input{font-family:'IBM Plex Mono',monospace;text-align:center;font-weight:600;}
+
+  .msg{font-size:0.85rem;margin-top:0.75rem;padding:0.6rem 0.8rem;border-radius:6px;display:none;}
   .msg.show{display:block;}
-  .msg.ok{background:#EAF3DE;color:var(--good);}
-  .msg.err{background:#FCEBEB;color:#791F1F;}
-  .filter-row{
-    display:flex;
-    gap:0.75rem;
-    align-items:center;
-    margin-bottom:1.25rem;
-    flex-wrap:wrap;
-  }
-  .filter-row select{flex:1;min-width:180px;}
-  table{
-    width:100%;
-    border-collapse:collapse;
-    font-size:0.88rem;
-  }
-  thead th{
-    text-align:left;
-    font-size:0.72rem;
-    text-transform:uppercase;
-    letter-spacing:0.04em;
-    color:var(--ink-soft);
-    padding:0.5rem 0.6rem;
-    border-bottom:2px solid var(--ink);
-  }
-  tbody td{
-    padding:0.65rem 0.6rem;
-    border-bottom:1px solid var(--paper-line);
-    vertical-align:top;
-  }
+  .msg.ok{background:var(--good-light);color:var(--good);}
+  .msg.err{background:var(--warn-light);color:var(--warn);}
+
+  table{width:100%;border-collapse:collapse;font-size:0.86rem;}
+  thead th{text-align:left;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);padding:0.5rem 0.5rem;border-bottom:2px solid var(--ink);}
+  tbody td{padding:0.6rem 0.5rem;border-bottom:1px solid var(--paper-line);vertical-align:top;}
   tbody tr:hover{background:var(--willow-light);}
   .figs{font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
-  .empty{
-    text-align:center;
-    color:var(--ink-soft);
-    padding:2rem 1rem;
-    font-size:0.9rem;
-  }
-  .chart-wrap{position:relative;height:220px;margin-top:0.5rem;}
-  .export-btn{
-    background:transparent;
-    color:var(--ink);
-    border:1px solid var(--border);
-    margin-top:0;
-  }
-  .export-btn:hover{background:var(--willow-light);border-color:var(--willow);}
-  .card-head-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:1rem;
-    flex-wrap:wrap;
-    border-bottom:1px dashed var(--paper-line);
-    padding-bottom:0.6rem;
-    margin-bottom:1.25rem;
-  }
-  .card-head-row h2{border:none;margin:0;padding:0;}
+  .empty{text-align:center;color:var(--ink-soft);padding:2rem 1rem;font-size:0.9rem;}
+  .chart-wrap{position:relative;height:210px;margin:0.5rem 0 1.25rem;}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(22,50,79,0.45);display:none;align-items:center;justify-content:center;padding:1rem;z-index:50;}
+  .modal-bg.show{display:flex;}
+  .modal{background:#fff;border-radius:12px;padding:1.75rem;max-width:420px;width:100%;}
+  .modal h3{font-family:'Fraunces',serif;margin:0 0 1.1rem;}
+  .modal .field{margin-bottom:1rem;}
+  .radio-row{display:flex;gap:1.25rem;margin-top:0.3rem;}
+  .radio-row label{display:flex;align-items:center;gap:0.4rem;text-transform:none;font-weight:500;font-size:0.9rem;color:var(--ink);}
+  .radio-row input{width:auto;}
+  .modal-actions{display:flex;gap:0.6rem;margin-top:1.4rem;}
+  .modal-actions button{flex:1;}
+
+  .back-link{background:none;border:none;color:var(--ball);font-weight:600;padding:0;margin-bottom:1rem;cursor:pointer;font-size:0.9rem;}
+  .back-link:hover{background:none;text-decoration:underline;color:var(--ball-dark);}
+
+  .link-box{display:flex;gap:0.5rem;align-items:center;background:var(--paper);border:1px solid var(--border);border-radius:6px;padding:0.5rem 0.7rem;font-size:0.8rem;font-family:'IBM Plex Mono',monospace;word-break:break-all;margin-top:0.5rem;}
+
+  .fab{position:fixed;bottom:1.5rem;right:1.5rem;width:56px;height:56px;border-radius:50%;font-size:1.6rem;line-height:1;padding:0;box-shadow:0 4px 14px rgba(22,50,79,0.3);}
+  .hidden{display:none !important;}
   @media (max-width:600px){
     .grid{grid-template-columns:1fr;}
     .ratings{grid-template-columns:repeat(2,1fr);}
+    .stu-actions .row2{grid-template-columns:1fr;}
   }
 </style>
 </head>
@@ -207,93 +105,137 @@
   <header>
     <div>
       <h1>Coaching log</h1>
-      <p>Session notes and figures, one entry at a time</p>
+      <p>Students, sessions, and progress in one place</p>
     </div>
     <span class="status-pill" id="statusPill">connecting…</span>
   </header>
 
-  <div class="card">
-    <h2>New session</h2>
-    <form id="entryForm">
-      <div class="grid">
-        <div class="field">
-          <label for="studentName">Student</label>
-          <input list="studentList" id="studentName" name="studentName" placeholder="e.g. Arjun Patel" required>
-          <datalist id="studentList"></datalist>
-        </div>
-        <div class="field">
-          <label for="sessionDate">Session date</label>
-          <input type="date" id="sessionDate" name="sessionDate" required>
-        </div>
+  <!-- LANDING VIEW -->
+  <div id="landingView">
+    <div class="toolbar">
+      <h2>Students</h2>
+      <button type="button" class="btn-ghost btn-sm" id="exportAllBtn">Export all to Excel</button>
+    </div>
+    <div class="students-grid" id="studentsGrid"></div>
+  </div>
 
-        <div class="ratings">
-          <div class="field">
-            <label for="batting">Batting /10</label>
-            <input type="number" id="batting" name="batting" min="0" max="10" step="1">
-          </div>
-          <div class="field">
-            <label for="bowling">Bowling /10</label>
-            <input type="number" id="bowling" name="bowling" min="0" max="10" step="1">
-          </div>
-          <div class="field">
-            <label for="fielding">Fielding /10</label>
-            <input type="number" id="fielding" name="fielding" min="0" max="10" step="1">
-          </div>
-          <div class="field">
-            <label for="fitness">Fitness /10</label>
-            <input type="number" id="fitness" name="fitness" min="0" max="10" step="1">
-          </div>
-        </div>
+  <!-- PROFILE VIEW -->
+  <div id="profileView" class="hidden">
+    <button class="back-link" id="backBtn">&larr; All students</button>
 
-        <div class="field full">
-          <label for="finance">Finance</label>
-          <input type="text" id="finance" name="finance" placeholder="e.g. Paid - $50 cash">
+    <div class="card" id="profileHeaderCard"></div>
+
+    <div class="card">
+      <h3>Log a session</h3>
+      <form id="entryForm">
+        <div class="grid">
+          <div class="field">
+            <label for="sessionDate">Session date</label>
+            <input type="date" id="sessionDate" required>
+          </div>
+          <div class="field">
+            <label for="sessionsUsed">Sessions used</label>
+            <select id="sessionsUsed" required></select>
+          </div>
+
+          <div class="ratings">
+            <div class="field"><label for="batting">Batting /10</label><input type="number" id="batting" min="0" max="10" step="1"></div>
+            <div class="field"><label for="bowling">Bowling /10</label><input type="number" id="bowling" min="0" max="10" step="1"></div>
+            <div class="field"><label for="fielding">Fielding /10</label><input type="number" id="fielding" min="0" max="10" step="1"></div>
+            <div class="field"><label for="fitness">Fitness /10</label><input type="number" id="fitness" min="0" max="10" step="1"></div>
+          </div>
+
+          <div class="field full"><label for="finance">Finance</label><input type="text" id="finance" placeholder="e.g. Paid - $50 cash"></div>
+          <div class="field full"><label for="comments">Comments</label><textarea id="comments" placeholder="How the session went, what to work on next time"></textarea></div>
         </div>
-        <div class="field full">
-          <label for="comments">Comments</label>
-          <textarea id="comments" name="comments" placeholder="How the session went, what to work on next time"></textarea>
+        <button type="submit" id="submitBtn">Save session</button>
+        <div class="msg" id="formMsg"></div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <h3 style="margin:0;">Session history</h3>
+        <button type="button" class="btn-ghost btn-sm" id="exportOneBtn">Export this student</button>
+      </div>
+      <div class="chart-wrap" id="chartWrap" style="display:none;">
+        <canvas id="trendChart" role="img" aria-label="Line chart of ratings over time for this student"></canvas>
+      </div>
+      <div id="tableWrap"></div>
+    </div>
+  </div>
+
+  <button type="button" class="fab" id="addFab" title="Add student">+</button>
+</div>
+
+<!-- ADD/EDIT STUDENT MODAL -->
+<div class="modal-bg" id="studentModalBg">
+  <div class="modal">
+    <h3 id="modalTitle">Add student</h3>
+    <form id="studentForm">
+      <input type="hidden" id="editingId">
+      <div class="field">
+        <label for="stuName">Student name</label>
+        <input type="text" id="stuName" required>
+      </div>
+      <div class="field">
+        <label>Enrollment</label>
+        <div class="radio-row">
+          <label><input type="radio" name="enrollType" value="Individual" checked> Individual sessions</label>
+          <label><input type="radio" name="enrollType" value="Package"> Package</label>
         </div>
       </div>
-
-      <button type="submit" id="submitBtn">Save session</button>
-      <div class="msg" id="formMsg"></div>
+      <div class="field" id="packageSizeField" style="display:none;">
+        <label for="packageSize">Package size (sessions)</label>
+        <select id="packageSize"></select>
+      </div>
+      <div class="msg" id="studentMsg"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="cancelStudentBtn">Cancel</button>
+        <button type="submit" id="saveStudentBtn">Save</button>
+      </div>
     </form>
   </div>
-
-  <div class="card">
-    <div class="card-head-row">
-      <h2>Session history</h2>
-      <button type="button" class="export-btn" id="exportBtn">Export to Excel</button>
-    </div>
-    <div class="filter-row">
-      <select id="studentFilter">
-        <option value="">All students</option>
-      </select>
-    </div>
-    <div class="chart-wrap" id="chartWrap" style="display:none;">
-      <canvas id="trendChart" role="img" aria-label="Line chart of batting, bowling, fielding and fitness ratings over time for the selected student"></canvas>
-    </div>
-    <div id="tableWrap"></div>
-  </div>
-
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR075kUlqeEygo4SE4Oo74JEz1XpiRyrCsDRwMZjRMvSTGUmcjC3l7LTxxkB4kYyzvXA/exec";
+const VIEWER_BASE = window.location.href.replace(/index\.html$/,'').replace(/\/?$/,'/') + "view.html";
 
 const statusPill = document.getElementById('statusPill');
-const form = document.getElementById('entryForm');
-const submitBtn = document.getElementById('submitBtn');
-const formMsg = document.getElementById('formMsg');
-const studentFilter = document.getElementById('studentFilter');
-const studentList = document.getElementById('studentList');
+const studentsGrid = document.getElementById('studentsGrid');
+const landingView = document.getElementById('landingView');
+const profileView = document.getElementById('profileView');
+const profileHeaderCard = document.getElementById('profileHeaderCard');
 const tableWrap = document.getElementById('tableWrap');
 const chartWrap = document.getElementById('chartWrap');
-let allRows = [];
+const formMsg = document.getElementById('formMsg');
+const studentMsg = document.getElementById('studentMsg');
+
+let students = [];
+let log = [];
+let activeStudent = null;
 let trendChart = null;
 
+// build sessions-used dropdown options (0.5 to 15)
+function buildHalfSteps(selectEl, max, placeholder){
+  selectEl.innerHTML = (placeholder ? `<option value="">${placeholder}</option>` : '');
+  for(let v=0.5; v<=max; v+=0.5){
+    const label = Number.isInteger(v) ? v.toFixed(0) : v.toFixed(1);
+    selectEl.innerHTML += `<option value="${v}">${label}</option>`;
+  }
+}
+function buildWholeSteps(selectEl, max){
+  selectEl.innerHTML = '';
+  for(let v=1; v<=max; v++){
+    selectEl.innerHTML += `<option value="${v}">${v}</option>`;
+  }
+}
+
+buildHalfSteps(document.getElementById('sessionsUsed'), 15);
+buildWholeSteps(document.getElementById('packageSize'), 15);
 document.getElementById('sessionDate').valueAsDate = new Date();
 
 function showMsg(el, text, ok){
@@ -301,79 +243,142 @@ function showMsg(el, text, ok){
   el.className = 'msg show ' + (ok ? 'ok' : 'err');
   setTimeout(()=>{ el.className = 'msg'; }, 4000);
 }
-
 function fmtDate(v){
-  if(!v) return '';
+  if(!v) return '—';
   const d = new Date(v);
   if(isNaN(d)) return v;
   return d.toLocaleDateString('en-AU', {day:'2-digit', month:'short', year:'numeric'});
 }
 
-async function loadData(){
+async function loadAll(){
   try{
     const res = await fetch(SCRIPT_URL);
     const data = await res.json();
-    allRows = Array.isArray(data) ? data : [];
-    statusPill.textContent = 'connected · ' + allRows.length + ' sessions';
-    populateStudents();
-    renderTable();
+    students = data.students || [];
+    log = data.log || [];
+    statusPill.textContent = 'connected · ' + students.length + ' students';
+    renderLanding();
+    if(activeStudent){
+      const fresh = students.find(s => s.StudentID === activeStudent.StudentID);
+      if(fresh){ activeStudent = fresh; renderProfile(); }
+    }
   }catch(err){
     statusPill.textContent = 'connection failed';
-    tableWrap.innerHTML = '<div class="empty">Could not load session history. Check the sheet connection.</div>';
+    studentsGrid.innerHTML = '<div class="empty">Could not load data. Check your connection.</div>';
   }
 }
 
-function populateStudents(){
-  const names = [...new Set(allRows.map(r => r.StudentName).filter(Boolean))].sort();
-  studentList.innerHTML = names.map(n => `<option value="${n}">`).join('');
-  const current = studentFilter.value;
-  studentFilter.innerHTML = '<option value="">All students</option>' +
-    names.map(n => `<option value="${n}">${n}</option>`).join('');
-  studentFilter.value = current;
-}
-
-function renderTable(){
-  const filtered = studentFilter.value
-    ? allRows.filter(r => r.StudentName === studentFilter.value)
-    : allRows;
-
-  const sorted = [...filtered].sort((a,b) => new Date(b.SessionDate) - new Date(a.SessionDate));
-
-  if(sorted.length === 0){
-    tableWrap.innerHTML = '<div class="empty">No sessions logged yet. Add the first one above.</div>';
-    chartWrap.style.display = 'none';
+function renderLanding(){
+  if(students.length === 0){
+    studentsGrid.innerHTML = '<div class="empty">No students yet — tap + to add your first one.</div>';
     return;
   }
+  studentsGrid.innerHTML = students.map(s => {
+    const isPkg = s.EnrollmentType === 'Package' && s.PackageSize;
+    const used = Number(s.SessionsUsed) || 0;
+    const total = isPkg ? Number(s.PackageSize) : null;
+    const pct = isPkg ? Math.min(100, (used/total)*100) : 0;
+    return `
+      <div class="stu-card">
+        <div class="stu-top">
+          <div class="stu-name">${s.StudentName}</div>
+        </div>
+        <div class="stu-meta">${isPkg ? 'Package of ' + total : 'Individual sessions'} · Last: ${fmtDate(s.LastSession)}</div>
+        ${isPkg ? `
+          <div class="stu-stats"><span>Sessions</span><b>${used}/${total}</b></div>
+          <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+        ` : `
+          <div class="stu-stats"><span>Sessions logged</span><b>${used}</b></div>
+        `}
+        <div class="stu-actions">
+          <button type="button" class="btn-block open-profile" data-id="${s.StudentID}">Open profile</button>
+          <div class="row2">
+            <button type="button" class="btn-ghost btn-sm copy-link" data-code="${s.ShareCode}">Copy link</button>
+            <button type="button" class="btn-ghost btn-sm edit-student" data-id="${s.StudentID}">Edit</button>
+          </div>
+          <button type="button" class="btn-danger btn-sm btn-block delete-student" data-id="${s.StudentID}">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join('');
 
-  tableWrap.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Student</th>
-          <th>Figures</th>
-          <th>Finance</th>
-          <th>Comments</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${sorted.map(r => `
-          <tr>
-            <td>${fmtDate(r.SessionDate)}</td>
-            <td>${r.StudentName || ''}</td>
-            <td class="figs">B ${r.Batting ?? '-'} · Bo ${r.Bowling ?? '-'} · F ${r.Fielding ?? '-'} · Fit ${r.Fitness ?? '-'}</td>
-            <td>${r.Finance || ''}</td>
-            <td>${r.Comments || ''}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
+  studentsGrid.querySelectorAll('.open-profile').forEach(b => b.addEventListener('click', () => openProfile(b.dataset.id)));
+  studentsGrid.querySelectorAll('.copy-link').forEach(b => b.addEventListener('click', () => copyLink(b.dataset.code, b)));
+  studentsGrid.querySelectorAll('.edit-student').forEach(b => b.addEventListener('click', () => openStudentModal(b.dataset.id)));
+  studentsGrid.querySelectorAll('.delete-student').forEach(b => b.addEventListener('click', () => deleteStudent(b.dataset.id)));
+}
+
+function copyLink(code, btn){
+  const url = VIEWER_BASE + "?code=" + code;
+  navigator.clipboard.writeText(url).then(() => {
+    const old = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(()=> btn.textContent = old, 1500);
+  }).catch(() => {
+    prompt('Copy this link:', url);
+  });
+}
+
+function openProfile(id){
+  activeStudent = students.find(s => s.StudentID === id);
+  if(!activeStudent) return;
+  landingView.classList.add('hidden');
+  profileView.classList.remove('hidden');
+  renderProfile();
+}
+document.getElementById('backBtn').addEventListener('click', () => {
+  profileView.classList.add('hidden');
+  landingView.classList.remove('hidden');
+  activeStudent = null;
+});
+
+function renderProfile(){
+  const s = activeStudent;
+  const isPkg = s.EnrollmentType === 'Package' && s.PackageSize;
+  const used = Number(s.SessionsUsed) || 0;
+  const total = isPkg ? Number(s.PackageSize) : null;
+  const pct = isPkg ? Math.min(100, (used/total)*100) : 0;
+  const url = VIEWER_BASE + "?code=" + s.ShareCode;
+
+  profileHeaderCard.innerHTML = `
+    <div class="stu-top">
+      <div class="stu-name" style="font-size:1.4rem;">${s.StudentName}</div>
+    </div>
+    <div class="stu-meta">${isPkg ? 'Package of ' + total : 'Individual sessions'} · Last session: ${fmtDate(s.LastSession)}</div>
+    ${isPkg ? `
+      <div class="stu-stats"><span>Sessions attended</span><b>${used}/${total} <span style="font-weight:400;color:var(--ink-soft);font-family:'Inter',sans-serif;font-size:0.85rem;">(${Math.max(0,total-used)} to go)</span></b></div>
+      <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+    ` : `<div class="stu-stats"><span>Sessions logged</span><b>${used}</b></div>`}
+    <label style="display:block;margin-top:1rem;">Parent view link (read-only)</label>
+    <div class="link-box">${url}</div>
+    <button type="button" class="btn-ghost btn-sm" id="copyProfileLink" style="margin-top:0.6rem;">Copy link</button>
   `;
+  document.getElementById('copyProfileLink').addEventListener('click', (e) => copyLink(s.ShareCode, e.target));
 
-  if(studentFilter.value){
-    renderChart(sorted);
-  }else{
+  const rows = log.filter(l => l.StudentName === s.StudentName)
+    .sort((a,b) => new Date(b.SessionDate) - new Date(a.SessionDate));
+
+  if(rows.length === 0){
+    tableWrap.innerHTML = '<div class="empty">No sessions logged yet for this student.</div>';
     chartWrap.style.display = 'none';
+  }else{
+    tableWrap.innerHTML = `
+      <table>
+        <thead><tr><th>Date</th><th>Figures</th><th>Used</th><th>Finance</th><th>Comments</th></tr></thead>
+        <tbody>
+          ${rows.map(r => `
+            <tr>
+              <td>${fmtDate(r.SessionDate)}</td>
+              <td class="figs">B ${r.Batting ?? '-'} · Bo ${r.Bowling ?? '-'} · F ${r.Fielding ?? '-'} · Fit ${r.Fitness ?? '-'}</td>
+              <td class="figs">${r.SessionsUsed ?? '-'}</td>
+              <td>${r.Finance || ''}</td>
+              <td>${r.Comments || ''}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+    renderChart(rows);
   }
 }
 
@@ -393,25 +398,24 @@ function renderChart(rows){
         {label:'Fitness', data: asc.map(r => Number(r.Fitness) || null), borderColor:'#eda100', backgroundColor:'#eda100', tension:0.25, borderDash:[4,3]}
       ]
     },
-    options: {
-      responsive:true,
-      maintainAspectRatio:false,
+    options:{
+      responsive:true, maintainAspectRatio:false,
       scales:{ y:{ min:0, max:10, ticks:{stepSize:2} } },
       plugins:{ legend:{ position:'bottom', labels:{boxWidth:10, font:{size:11}} } }
     }
   });
 }
 
-studentFilter.addEventListener('change', renderTable);
-
-form.addEventListener('submit', async (e) => {
+// log session
+document.getElementById('entryForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Saving…';
-
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
   const payload = {
-    studentName: document.getElementById('studentName').value.trim(),
+    action:'addSession',
+    studentName: activeStudent.StudentName,
     sessionDate: document.getElementById('sessionDate').value,
+    sessionsUsed: document.getElementById('sessionsUsed').value,
     batting: document.getElementById('batting').value,
     bowling: document.getElementById('bowling').value,
     fielding: document.getElementById('fielding').value,
@@ -419,30 +423,112 @@ form.addEventListener('submit', async (e) => {
     finance: document.getElementById('finance').value.trim(),
     comments: document.getElementById('comments').value.trim()
   };
-
   try{
     await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
     showMsg(formMsg, 'Session saved.', true);
-    form.reset();
+    e.target.reset();
     document.getElementById('sessionDate').valueAsDate = new Date();
-    await loadData();
+    await loadAll();
   }catch(err){
-    showMsg(formMsg, 'Could not save. Check your connection and try again.', false);
+    showMsg(formMsg, 'Could not save. Try again.', false);
   }finally{
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Save session';
+    btn.disabled = false; btn.textContent = 'Save session';
   }
 });
 
-document.getElementById('exportBtn').addEventListener('click', () => {
-  if(allRows.length === 0) return;
-  const ws = XLSX.utils.json_to_sheet(allRows);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Sessions');
-  XLSX.writeFile(wb, 'coaching_log_export.xlsx');
+// add/edit student modal
+const modalBg = document.getElementById('studentModalBg');
+const studentForm = document.getElementById('studentForm');
+const modalTitle = document.getElementById('modalTitle');
+const packageSizeField = document.getElementById('packageSizeField');
+
+function toggleEnrollFields(){
+  const type = document.querySelector('input[name="enrollType"]:checked').value;
+  packageSizeField.style.display = type === 'Package' ? 'block' : 'none';
+}
+document.querySelectorAll('input[name="enrollType"]').forEach(r => r.addEventListener('change', toggleEnrollFields));
+
+document.getElementById('addFab').addEventListener('click', () => openStudentModal(null));
+document.getElementById('cancelStudentBtn').addEventListener('click', () => modalBg.classList.remove('show'));
+
+function openStudentModal(id){
+  studentForm.reset();
+  toggleEnrollFields();
+  if(id){
+    const s = students.find(x => x.StudentID === id);
+    modalTitle.textContent = 'Edit student';
+    document.getElementById('editingId').value = id;
+    document.getElementById('stuName').value = s.StudentName;
+    document.querySelector(`input[name="enrollType"][value="${s.EnrollmentType}"]`).checked = true;
+    if(s.EnrollmentType === 'Package'){
+      document.getElementById('packageSize').value = s.PackageSize;
+    }
+    toggleEnrollFields();
+  }else{
+    modalTitle.textContent = 'Add student';
+    document.getElementById('editingId').value = '';
+  }
+  modalBg.classList.add('show');
+}
+
+studentForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('editingId').value;
+  const btn = document.getElementById('saveStudentBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const payload = {
+    action: id ? 'editStudent' : 'addStudent',
+    studentId: id,
+    studentName: document.getElementById('stuName').value.trim(),
+    enrollmentType: document.querySelector('input[name="enrollType"]:checked').value,
+    packageSize: document.querySelector('input[name="enrollType"]:checked').value === 'Package'
+      ? document.getElementById('packageSize').value : ''
+  };
+
+  try{
+    await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
+    modalBg.classList.remove('show');
+    await loadAll();
+  }catch(err){
+    showMsg(studentMsg, 'Could not save. Try again.', false);
+  }finally{
+    btn.disabled = false; btn.textContent = 'Save';
+  }
 });
 
-loadData();
+async function deleteStudent(id){
+  const s = students.find(x => x.StudentID === id);
+  if(!confirm(`Remove ${s.StudentName} from your active student list? Their past session history will be kept.`)) return;
+  try{
+    await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({action:'deleteStudent', studentId:id}) });
+    await loadAll();
+  }catch(err){
+    alert('Could not delete. Try again.');
+  }
+}
+
+// exports
+document.getElementById('exportAllBtn').addEventListener('click', () => {
+  if(log.length === 0) return;
+  const ws = XLSX.utils.json_to_sheet(log);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Sessions');
+  const wsStu = XLSX.utils.json_to_sheet(students.map(({ShareCode, ...rest}) => rest));
+  XLSX.utils.book_append_sheet(wb, wsStu, 'Students');
+  XLSX.writeFile(wb, 'coaching_log_all.xlsx');
+});
+
+document.getElementById('exportOneBtn').addEventListener('click', () => {
+  const rows = log.filter(l => l.StudentName === activeStudent.StudentName);
+  if(rows.length === 0) return;
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, activeStudent.StudentName.substring(0,30));
+  XLSX.writeFile(wb, activeStudent.StudentName.replace(/\s+/g,'_') + '_sessions.xlsx');
+});
+
+loadAll();
 </script>
 </body>
 </html>

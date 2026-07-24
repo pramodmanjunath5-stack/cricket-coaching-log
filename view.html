@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session History</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16324F; --ink-soft:#4C6A85;
+    --ball:#1B5FA8; --willow:#7FA8CE; --willow-light:#E5EFF9;
+    --paper:#F6F9FC; --paper-line:#DCE6F0; --card:#FFFFFF; --border:#D6E1EC;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;padding:2rem 1.25rem 4rem;}
+  .wrap{max-width:720px;margin:0 auto;}
+  header{border-bottom:2px solid var(--ink);padding-bottom:1rem;margin-bottom:1.5rem;}
+  header h1{font-family:'Fraunces',serif;font-weight:600;font-size:1.7rem;margin:0;}
+  header p{margin:0.25rem 0 0;color:var(--ink-soft);font-size:0.88rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.5rem;margin-bottom:1.25rem;}
+  .stu-stats{display:flex;justify-content:space-between;align-items:baseline;font-size:0.9rem;}
+  .stu-stats b{font-family:'IBM Plex Mono',monospace;font-size:1.15rem;}
+  .bar{height:8px;border-radius:5px;background:var(--paper-line);margin-top:0.6rem;overflow:hidden;}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--willow),var(--ball));border-radius:5px;}
+  .chart-wrap{position:relative;height:210px;margin:0.5rem 0 1.25rem;}
+  table{width:100%;border-collapse:collapse;font-size:0.86rem;}
+  thead th{text-align:left;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);padding:0.5rem;border-bottom:2px solid var(--ink);}
+  tbody td{padding:0.6rem 0.5rem;border-bottom:1px solid var(--paper-line);vertical-align:top;}
+  .figs{font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+  .empty{text-align:center;color:var(--ink-soft);padding:2rem 1rem;font-size:0.9rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="pageTitle">Session history</h1>
+    <p>Read-only view</p>
+  </header>
+  <div id="content">
+    <div class="empty">Loading…</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR075kUlqeEygo4SE4Oo74JEz1XpiRyrCsDRwMZjRMvSTGUmcjC3l7LTxxkB4kYyzvXA/exec";
+const content = document.getElementById('content');
+const pageTitle = document.getElementById('pageTitle');
+
+function fmtDate(v){
+  if(!v) return '—';
+  const d = new Date(v);
+  if(isNaN(d)) return v;
+  return d.toLocaleDateString('en-AU', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+async function load(){
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if(!code){
+    content.innerHTML = '<div class="empty">No student link provided.</div>';
+    return;
+  }
+  try{
+    const res = await fetch(SCRIPT_URL);
+    const data = await res.json();
+    const student = (data.students || []).find(s => s.ShareCode === code);
+    if(!student){
+      content.innerHTML = '<div class="empty">This link is no longer valid.</div>';
+      return;
+    }
+    pageTitle.textContent = student.StudentName + "'s sessions";
+
+    const isPkg = student.EnrollmentType === 'Package' && student.PackageSize;
+    const used = Number(student.SessionsUsed) || 0;
+    const total = isPkg ? Number(student.PackageSize) : null;
+    const pct = isPkg ? Math.min(100, (used/total)*100) : 0;
+
+    const rows = (data.log || []).filter(l => l.StudentName === student.StudentName)
+      .sort((a,b) => new Date(b.SessionDate) - new Date(a.SessionDate));
+
+    let html = `<div class="card">`;
+    html += isPkg
+      ? `<div class="stu-stats"><span>Sessions attended</span><b>${used}/${total}</b></div><div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>`
+      : `<div class="stu-stats"><span>Sessions attended</span><b>${used}</b></div>`;
+    html += `</div>`;
+
+    html += `<div class="card"><div class="chart-wrap"><canvas id="trendChart"></canvas></div>`;
+
+    if(rows.length === 0){
+      html += `<div class="empty">No sessions logged yet.</div>`;
+    }else{
+      html += `<table><thead><tr><th>Date</th><th>Figures</th><th>Comments</th></tr></thead><tbody>`;
+      rows.forEach(r => {
+        html += `<tr>
+          <td>${fmtDate(r.SessionDate)}</td>
+          <td class="figs">B ${r.Batting ?? '-'} · Bo ${r.Bowling ?? '-'} · F ${r.Fielding ?? '-'} · Fit ${r.Fitness ?? '-'}</td>
+          <td>${r.Comments || ''}</td>
+        </tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+    html += `</div>`;
+    content.innerHTML = html;
+
+    if(rows.length){
+      const asc = [...rows].sort((a,b) => new Date(a.SessionDate) - new Date(b.SessionDate));
+      new Chart(document.getElementById('trendChart'), {
+        type:'line',
+        data:{
+          labels: asc.map(r => fmtDate(r.SessionDate)),
+          datasets:[
+            {label:'Batting', data: asc.map(r => Number(r.Batting) || null), borderColor:'#8B2635', tension:0.25},
+            {label:'Bowling', data: asc.map(r => Number(r.Bowling) || null), borderColor:'#2a78d6', tension:0.25, borderDash:[4,3]},
+            {label:'Fielding', data: asc.map(r => Number(r.Fielding) || null), borderColor:'#1baf7a', tension:0.25},
+            {label:'Fitness', data: asc.map(r => Number(r.Fitness) || null), borderColor:'#eda100', tension:0.25, borderDash:[4,3]}
+          ]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          scales:{ y:{ min:0, max:10, ticks:{stepSize:2} } },
+          plugins:{ legend:{ position:'bottom', labels:{boxWidth:10, font:{size:11}} } }
+        }
+      });
+    }
+  }catch(err){
+    content.innerHTML = '<div class="empty">Could not load session history.</div>';
+  }
+}
+load();
+</script>
+</body>
+</html>
