@@ -623,7 +623,7 @@ function renderSessionTable(){
 function setPresetRange(preset){
   document.querySelectorAll('.filter-presets button[data-preset]').forEach(b => b.classList.toggle('active', b.dataset.preset === preset));
   const today = new Date();
-  const toStr = today.toISOString().slice(0,10);
+  const toStr = dateOnly(today);
   if(preset === 'all'){
     filterFrom = ''; filterTo = '';
     document.getElementById('filterFrom').value = '';
@@ -632,7 +632,7 @@ function setPresetRange(preset){
     const months = preset === '3m' ? 3 : 6;
     const from = new Date(today);
     from.setMonth(from.getMonth() - months);
-    filterFrom = from.toISOString().slice(0,10);
+    filterFrom = dateOnly(from);
     filterTo = toStr;
     document.getElementById('filterFrom').value = filterFrom;
     document.getElementById('filterTo').value = filterTo;
@@ -664,7 +664,7 @@ function startEditSession(sessionId){
   const r = log.find(l => String(l.SessionID) === String(sessionId));
   if(!r) return;
   editingSessionId = sessionId;
-  document.getElementById('sessionDate').value = r.SessionDate ? new Date(r.SessionDate).toISOString().slice(0,10) : '';
+  document.getElementById('sessionDate').value = r.SessionDate ? dateOnly(r.SessionDate) : '';
   document.getElementById('sessionsUsed').value = r.SessionsUsed ?? '';
   document.getElementById('finance').value = r.Finance || '';
   document.getElementById('comments').value = r.Comments || '';
