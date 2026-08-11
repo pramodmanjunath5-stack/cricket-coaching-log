@@ -26,6 +26,13 @@
   .status-pill{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;padding:0.35rem 0.7rem;border-radius:20px;background:var(--willow-light);color:var(--ball-dark);border:1px solid var(--willow);white-space:nowrap;}
   .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;gap:0.75rem;flex-wrap:wrap;}
   .toolbar h2{font-family:'Fraunces',serif;font-size:1.2rem;margin:0;}
+  .filter-row{display:flex;align-items:flex-end;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.75rem;padding-bottom:1rem;border-bottom:1px solid var(--paper-line);}
+  .filter-row .field{margin-bottom:0;}
+  .filter-row label{font-size:0.72rem;color:var(--ink-soft);display:block;margin-bottom:0.2rem;}
+  .filter-row input{padding:0.4rem 0.55rem;font-size:0.82rem;}
+  .filter-presets{display:flex;gap:0.4rem;flex-wrap:wrap;}
+  .filter-presets button.active{background:var(--willow-light);border-color:var(--ball);color:var(--ball);}
+  .filter-note{font-size:0.8rem;color:var(--ink-soft);margin-bottom:0.9rem;}
   button{font-family:'Inter',sans-serif;font-weight:600;font-size:0.88rem;padding:0.7rem 1.25rem;border:none;border-radius:7px;background:var(--ball);color:#fff;cursor:pointer;}
   button:hover{background:var(--ball-dark);}
   button:disabled{opacity:0.55;cursor:not-allowed;}
@@ -39,17 +46,22 @@
   .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.5rem;margin-bottom:1rem;}
   .card h2,.card h3{font-family:'Fraunces',serif;font-weight:600;margin:0 0 1.1rem;}
 
-  .students-grid{display:grid;grid-template-columns:1fr;gap:0.9rem;}
-  .stu-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.25rem 1.4rem;}
+  .students-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.75rem;}
+  .stu-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:0.9rem 1rem;}
   .stu-top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:0.4rem;}
-  .stu-name{font-family:'Fraunces',serif;font-weight:600;font-size:1.15rem;}
-  .stu-meta{color:var(--ink-soft);font-size:0.82rem;margin-top:0.15rem;}
-  .stu-stats{display:flex;justify-content:space-between;align-items:baseline;margin-top:0.9rem;font-size:0.9rem;}
-  .stu-stats b{font-family:'IBM Plex Mono',monospace;font-size:1rem;}
-  .bar{height:8px;border-radius:5px;background:var(--paper-line);margin-top:0.5rem;overflow:hidden;}
+  .stu-name{font-family:'Fraunces',serif;font-weight:600;font-size:1rem;}
+  .stu-meta{color:var(--ink-soft);font-size:0.76rem;margin-top:0.1rem;}
+  .pay-flag{display:inline-block;font-size:0.68rem;font-weight:600;padding:0.18rem 0.5rem;border-radius:99px;white-space:nowrap;}
+  .flag-green{background:#E4F2EC;color:#1a7a4c;}
+  .flag-amber{background:#FCF0DA;color:#a3690f;}
+  .flag-red{background:#FBE7E6;color:#b3261e;}
+  .flag-neutral{background:#EDEEF0;color:#5B6B82;}
+  .stu-stats{display:flex;justify-content:space-between;align-items:baseline;margin-top:0.6rem;font-size:0.82rem;}
+  .stu-stats b{font-family:'IBM Plex Mono',monospace;font-size:0.9rem;}
+  .bar{height:6px;border-radius:5px;background:var(--paper-line);margin-top:0.4rem;overflow:hidden;}
   .bar-fill{height:100%;background:linear-gradient(90deg,var(--willow),var(--ball));border-radius:5px;}
-  .stu-actions{display:grid;grid-template-columns:1fr;gap:0.5rem;margin-top:1rem;}
-  .stu-actions .row2{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;}
+  .stu-actions{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.75rem;}
+  .stu-actions button{flex:1 1 28%;padding:0.45rem 0.4rem;font-size:0.74rem;white-space:nowrap;}
 
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem 1.25rem;}
   .field{display:flex;flex-direction:column;gap:0.35rem;}
@@ -58,8 +70,6 @@
   input,select,textarea{font-family:'Inter',sans-serif;font-size:0.95rem;padding:0.6rem 0.7rem;border:1px solid var(--border);border-radius:6px;background:var(--paper);color:var(--ink);width:100%;}
   input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ball);background:#fff;}
   textarea{resize:vertical;min-height:70px;}
-  .ratings{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;grid-column:1/-1;}
-  .ratings input{font-family:'IBM Plex Mono',monospace;text-align:center;font-weight:600;}
 
   .msg{font-size:0.85rem;margin-top:0.75rem;padding:0.6rem 0.8rem;border-radius:6px;display:none;}
   .msg.show{display:block;}
@@ -94,8 +104,7 @@
   .hidden{display:none !important;}
   @media (max-width:600px){
     .grid{grid-template-columns:1fr;}
-    .ratings{grid-template-columns:repeat(2,1fr);}
-    .stu-actions .row2{grid-template-columns:1fr;}
+    .students-grid{grid-template-columns:1fr 1fr;}
   }
 </style>
 </head>
@@ -127,6 +136,7 @@
 
     <div class="card">
       <h3>Log a session</h3>
+      <div class="filter-note" id="loggingContextNote"></div>
       <form id="entryForm">
         <div class="grid">
           <div class="field">
@@ -138,17 +148,24 @@
             <select id="sessionsUsed" required></select>
           </div>
 
-          <div class="ratings">
-            <div class="field"><label for="batting">Batting /10</label><input type="number" id="batting" min="0" max="10" step="1"></div>
-            <div class="field"><label for="bowling">Bowling /10</label><input type="number" id="bowling" min="0" max="10" step="1"></div>
-            <div class="field"><label for="fielding">Fielding /10</label><input type="number" id="fielding" min="0" max="10" step="1"></div>
-            <div class="field"><label for="fitness">Fitness /10</label><input type="number" id="fitness" min="0" max="10" step="1"></div>
-          </div>
-
           <div class="field full"><label for="finance">Finance</label><input type="text" id="finance" placeholder="e.g. Paid - $50 cash"></div>
+          <div class="field full">
+            <label for="sessionPaymentStatus">Payment (this session)</label>
+            <select id="sessionPaymentStatus">
+              <option value="Unpaid">Unpaid — last session</option>
+              <option value="Paid">Paid — last session</option>
+              <option value="Not needed">Payment not needed</option>
+            </select>
+          </div>
+          <div class="field full" id="sessionAmountField" style="display:none;">
+            <label for="sessionAmountPaid">Amount paid ($)</label>
+            <input type="number" id="sessionAmountPaid" min="0" step="0.01" placeholder="0.00">
+          </div>
           <div class="field full"><label for="comments">Comments</label><textarea id="comments" placeholder="How the session went, what to work on next time"></textarea></div>
+          <div class="field full"><label for="internalNote">Internal note (private — not shared with parents)</label><textarea id="internalNote" placeholder="Notes for yourself only"></textarea></div>
         </div>
-        <button type="submit" id="submitBtn">Save session</button>
+        <button type="submit" id="submitBtn" style="margin-top:1.1rem;">Save session</button>
+        <button type="button" id="cancelEditBtn" class="btn-ghost hidden" style="margin-top:1.1rem;margin-left:0.5rem;">Cancel edit</button>
         <div class="msg" id="formMsg"></div>
       </form>
     </div>
@@ -158,9 +175,23 @@
         <h3 style="margin:0;">Session history</h3>
         <button type="button" class="btn-ghost btn-sm" id="exportOneBtn">Export this student</button>
       </div>
-      <div class="chart-wrap" id="chartWrap" style="display:none;">
-        <canvas id="trendChart" role="img" aria-label="Line chart of ratings over time for this student"></canvas>
+      <div class="filter-row">
+        <div class="field">
+          <label for="filterFrom">From</label>
+          <input type="date" id="filterFrom">
+        </div>
+        <div class="field">
+          <label for="filterTo">To</label>
+          <input type="date" id="filterTo">
+        </div>
+        <div class="filter-presets">
+          <button type="button" class="btn-ghost btn-sm" data-preset="3m">Last 3 months</button>
+          <button type="button" class="btn-ghost btn-sm" data-preset="6m">Last 6 months</button>
+          <button type="button" class="btn-ghost btn-sm" data-preset="all">Overall</button>
+          <button type="button" class="btn-ghost btn-sm" id="clearFilterBtn">Clear</button>
+        </div>
       </div>
+      <div class="filter-note" id="filterNote"></div>
       <div id="tableWrap"></div>
     </div>
   </div>
@@ -174,7 +205,9 @@
     <h3 id="modalTitle">Add student</h3>
     <form id="studentForm">
       <input type="hidden" id="editingId">
-      <div class="field">
+      <input type="hidden" id="enrollmentEditId">
+      <input type="hidden" id="modalMode" value="add">
+      <div class="field" id="stuNameField">
         <label for="stuName">Student name</label>
         <input type="text" id="stuName" required>
       </div>
@@ -185,9 +218,22 @@
           <label><input type="radio" name="enrollType" value="Package"> Package</label>
         </div>
       </div>
+      <div class="field">
+        <label for="enrollStartDate">Start date (optional)</label>
+        <input type="date" id="enrollStartDate">
+        <div style="font-size:0.72rem;color:var(--ink-soft);margin-top:0.25rem;">Leave blank to use the date of the first session logged.</div>
+      </div>
       <div class="field" id="packageSizeField" style="display:none;">
         <label for="packageSize">Package size (sessions)</label>
         <select id="packageSize"></select>
+      </div>
+      <div class="field" id="totalAmountField" style="display:none;">
+        <label for="totalAmount">Total package amount ($)</label>
+        <input type="number" id="totalAmount" min="0" step="0.01" placeholder="0.00">
+      </div>
+      <div class="field" id="amountPaidField" style="display:none;">
+        <label for="amountPaid">Amount paid so far ($)</label>
+        <input type="number" id="amountPaid" min="0" step="0.01" placeholder="0.00">
       </div>
       <div class="msg" id="studentMsg"></div>
       <div class="modal-actions">
@@ -198,10 +244,12 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR075kUlqeEygo4SE4Oo74JEz1XpiRyrCsDRwMZjRMvSTGUmcjC3l7LTxxkB4kYyzvXA/exec";
+// Must match ADMIN_KEY in the Apps Script backend. Keeps InternalNote out of
+// what the parent-facing view.html receives.
+const ADMIN_KEY = "aba47f4c2ebf20567ae4de63";
 const VIEWER_BASE = window.location.href.replace(/index\.html$/,'').replace(/\/?$/,'/') + "view.html";
 
 const statusPill = document.getElementById('statusPill');
@@ -210,14 +258,14 @@ const landingView = document.getElementById('landingView');
 const profileView = document.getElementById('profileView');
 const profileHeaderCard = document.getElementById('profileHeaderCard');
 const tableWrap = document.getElementById('tableWrap');
-const chartWrap = document.getElementById('chartWrap');
+const filterNote = document.getElementById('filterNote');
 const formMsg = document.getElementById('formMsg');
 const studentMsg = document.getElementById('studentMsg');
 
 let students = [];
 let log = [];
 let activeStudent = null;
-let trendChart = null;
+let editingSessionId = null;
 
 // build sessions-used dropdown options (0.5 to 15)
 function buildHalfSteps(selectEl, max, placeholder){
@@ -236,7 +284,7 @@ function buildWholeSteps(selectEl, max){
 
 buildHalfSteps(document.getElementById('sessionsUsed'), 15);
 buildWholeSteps(document.getElementById('packageSize'), 15);
-document.getElementById('sessionDate').valueAsDate = new Date();
+document.getElementById('sessionDate').value = todayMelbourne();
 
 function showMsg(el, text, ok){
   el.textContent = text;
@@ -247,12 +295,41 @@ function fmtDate(v){
   if(!v) return '—';
   const d = new Date(v);
   if(isNaN(d)) return v;
-  return d.toLocaleDateString('en-AU', {day:'2-digit', month:'short', year:'numeric'});
+  return d.toLocaleDateString('en-AU', {day:'2-digit', month:'short', year:'numeric', timeZone:'Australia/Melbourne'});
 }
+
+// Today's date in Melbourne, as yyyy-mm-dd — independent of the viewer's own device timezone
+function todayMelbourne(){
+  return new Date().toLocaleDateString('en-CA', {timeZone:'Australia/Melbourne'});
+}
+
+// Returns {cls, label} for a student's payment flag.
+// Package students: driven by their profile-level PaymentStatus.
+// Individual students: driven by the payment status logged on their most recent session.
+function paymentFlagFor(s){
+  const isPkg = s.EnrollmentType === 'Package';
+  if(isPkg){
+    const status = s.PaymentStatus || 'Not paid';
+    if(status === 'Paid in full') return {cls:'flag-green', label:'Paid in full'};
+    if(status === 'Partially paid') return {cls:'flag-amber', label:'Partially paid'};
+    return {cls:'flag-red', label:'Not paid'};
+  }
+  const rows = log.filter(l => l.EnrollmentID === s.CurrentEnrollmentID)
+    .sort((a,b) => new Date(b.SessionDate) - new Date(a.SessionDate));
+  if(rows.length === 0) return null;
+  const latest = rows[0];
+  return latest.SessionPaymentStatus === 'Paid'
+    ? {cls:'flag-green', label:'Paid — last session'}
+    : {cls:'flag-red', label:'Unpaid — last session'};
+}
+
+document.getElementById('sessionPaymentStatus').addEventListener('change', (e) => {
+  document.getElementById('sessionAmountField').style.display = e.target.value === 'Paid' ? 'block' : 'none';
+});
 
 async function loadAll(){
   try{
-    const res = await fetch(SCRIPT_URL);
+    const res = await fetch(SCRIPT_URL + "?key=" + ADMIN_KEY);
     const data = await res.json();
     students = data.students || [];
     log = data.log || [];
@@ -278,10 +355,12 @@ function renderLanding(){
     const used = Number(s.SessionsUsed) || 0;
     const total = isPkg ? Number(s.PackageSize) : null;
     const pct = isPkg ? Math.min(100, (used/total)*100) : 0;
+    const flag = paymentFlagFor(s);
     return `
       <div class="stu-card">
         <div class="stu-top">
           <div class="stu-name">${s.StudentName}</div>
+          ${flag ? `<span class="pay-flag ${flag.cls}">${flag.label}</span>` : ''}
         </div>
         <div class="stu-meta">${isPkg ? 'Package of ' + total : 'Individual sessions'} · Last: ${fmtDate(s.LastSession)}</div>
         ${isPkg ? `
@@ -291,12 +370,11 @@ function renderLanding(){
           <div class="stu-stats"><span>Sessions logged</span><b>${used}</b></div>
         `}
         <div class="stu-actions">
-          <button type="button" class="btn-block open-profile" data-id="${s.StudentID}">Open profile</button>
-          <div class="row2">
-            <button type="button" class="btn-ghost btn-sm copy-link" data-code="${s.ShareCode}">Copy link</button>
-            <button type="button" class="btn-ghost btn-sm edit-student" data-id="${s.StudentID}">Edit</button>
-          </div>
-          <button type="button" class="btn-danger btn-sm btn-block delete-student" data-id="${s.StudentID}">Delete</button>
+          <button type="button" class="btn-sm open-profile" data-id="${s.StudentID}" title="Open profile">Open</button>
+          <button type="button" class="btn-ghost btn-sm copy-link" data-code="${s.ShareCode}" title="Copy parent link">Copy</button>
+          <button type="button" class="btn-ghost btn-sm edit-student" data-id="${s.StudentID}" title="Edit student">Edit</button>
+          <button type="button" class="btn-ghost btn-sm new-enrollment" data-id="${s.StudentID}" title="Start new package or individual sessions">New</button>
+          <button type="button" class="btn-danger btn-sm delete-student" data-id="${s.StudentID}" title="Delete student">Del</button>
         </div>
       </div>
     `;
@@ -305,6 +383,10 @@ function renderLanding(){
   studentsGrid.querySelectorAll('.open-profile').forEach(b => b.addEventListener('click', () => openProfile(b.dataset.id)));
   studentsGrid.querySelectorAll('.copy-link').forEach(b => b.addEventListener('click', () => copyLink(b.dataset.code, b)));
   studentsGrid.querySelectorAll('.edit-student').forEach(b => b.addEventListener('click', () => openStudentModal(b.dataset.id)));
+  studentsGrid.querySelectorAll('.new-enrollment').forEach(b => b.addEventListener('click', () => {
+    const s = students.find(x => x.StudentID === b.dataset.id);
+    if(s) openNewEnrollmentModal(s);
+  }));
   studentsGrid.querySelectorAll('.delete-student').forEach(b => b.addEventListener('click', () => deleteStudent(b.dataset.id)));
 }
 
@@ -324,6 +406,12 @@ function openProfile(id){
   if(!activeStudent) return;
   landingView.classList.add('hidden');
   profileView.classList.remove('hidden');
+  document.getElementById('sessionAmountField').style.display = document.getElementById('sessionPaymentStatus').value === 'Paid' ? 'block' : 'none';
+  filterFrom = ''; filterTo = '';
+  document.getElementById('filterFrom').value = '';
+  document.getElementById('filterTo').value = '';
+  document.querySelectorAll('.filter-presets button[data-preset]').forEach(b => b.classList.remove('active'));
+  selectedEnrollmentId = activeStudent.CurrentEnrollmentID;
   renderProfile();
 }
 document.getElementById('backBtn').addEventListener('click', () => {
@@ -332,119 +420,328 @@ document.getElementById('backBtn').addEventListener('click', () => {
   activeStudent = null;
 });
 
+// which enrollment's stats/sessions are currently shown on the profile page
+let selectedEnrollmentId = null;
+
 function renderProfile(){
   const s = activeStudent;
-  const isPkg = s.EnrollmentType === 'Package' && s.PackageSize;
-  const used = Number(s.SessionsUsed) || 0;
-  const total = isPkg ? Number(s.PackageSize) : null;
+  if(!selectedEnrollmentId){
+    selectedEnrollmentId = s.CurrentEnrollmentID;
+  }
+  const enr = (s.Enrollments || []).find(e => e.EnrollmentID === selectedEnrollmentId) || s.Enrollments?.[0];
+  if(!enr){
+    profileHeaderCard.innerHTML = `<div class="stu-name" style="font-size:1.4rem;">${s.StudentName}</div><p style="color:var(--ink-soft);">No enrollment on record.</p>`;
+    return;
+  }
+
+  const isPkg = enr.EnrollmentType === 'Package' && enr.PackageSize;
+  const used = Number(enr.SessionsUsed) || 0;
+  const total = isPkg ? Number(enr.PackageSize) : null;
   const pct = isPkg ? Math.min(100, (used/total)*100) : 0;
+  const isCurrent = enr.EnrollmentID === s.CurrentEnrollmentID;
   const url = VIEWER_BASE + "?code=" + s.ShareCode;
+  const flag = isCurrent ? paymentFlagFor(s) : enrollmentFlag(enr);
+
+  const enrollOptions = (s.Enrollments || []).map(e => {
+    const label = (e.EnrollmentType === 'Package' ? 'Package of ' + e.PackageSize : 'Individual sessions')
+      + ' — started ' + fmtDate(e.StartDate) + (e.EnrollmentID === s.CurrentEnrollmentID ? ' (current)' : '');
+    return `<option value="${e.EnrollmentID}" ${e.EnrollmentID === selectedEnrollmentId ? 'selected' : ''}>${label}</option>`;
+  }).join('');
+
+  const allEnr = s.Enrollments || [];
+  const oldestFirst = [...allEnr].reverse();
+  const typeAsc = oldestFirst.filter(e => e.EnrollmentType === enr.EnrollmentType);
+  const ordinal = typeAsc.findIndex(e => e.EnrollmentID === enr.EnrollmentID) + 1;
+  const completedPackages = allEnr.filter(e => e.EnrollmentType === 'Package' && e.EnrollmentID !== s.CurrentEnrollmentID).length;
+  const completedIndividual = allEnr.filter(e => e.EnrollmentType === 'Individual' && e.EnrollmentID !== s.CurrentEnrollmentID).length;
+  const historyLine = allEnr.length > 1
+    ? `History: ${completedPackages} completed package${completedPackages === 1 ? '' : 's'} · ${completedIndividual} individual-session cycle${completedIndividual === 1 ? '' : 's'}` +
+      (isCurrent ? ` — currently on ${isPkg ? 'package' : 'individual sessions'} #${ordinal}.` : ` (viewing ${isPkg ? 'package' : 'individual sessions'} #${ordinal}).`)
+    : '';
 
   profileHeaderCard.innerHTML = `
     <div class="stu-top">
       <div class="stu-name" style="font-size:1.4rem;">${s.StudentName}</div>
+      ${flag ? `<span class="pay-flag ${flag.cls}">${flag.label}</span>` : ''}
     </div>
-    <div class="stu-meta">${isPkg ? 'Package of ' + total : 'Individual sessions'} · Last session: ${fmtDate(s.LastSession)}</div>
+    ${historyLine ? `<div class="stu-meta" style="margin-top:0.4rem;">${historyLine}</div>` : ''}
+    ${(s.Enrollments || []).length > 1 ? `
+      <div class="field" style="margin-top:0.75rem;max-width:340px;">
+        <label for="enrollmentSelect">Viewing enrollment</label>
+        <select id="enrollmentSelect">${enrollOptions}</select>
+      </div>
+    ` : ''}
+    <div class="stu-meta" style="margin-top:0.6rem;">${isPkg ? 'Package of ' + total : 'Individual sessions'} · Last session: ${fmtDate(enr.LastSession)}</div>
     ${isPkg ? `
       <div class="stu-stats"><span>Sessions attended</span><b>${used}/${total} <span style="font-weight:400;color:var(--ink-soft);font-family:'Inter',sans-serif;font-size:0.85rem;">(${Math.max(0,total-used)} to go)</span></b></div>
       <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+      ${enr.TotalAmount ? `<div class="stu-stats" style="margin-top:0.4rem;"><span>Amount paid</span><b>$${enr.AmountPaidTotal || 0} / $${enr.TotalAmount}</b></div>` : ''}
     ` : `<div class="stu-stats"><span>Sessions logged</span><b>${used}</b></div>`}
     <label style="display:block;margin-top:1rem;">Parent view link (read-only)</label>
     <div class="link-box">${url}</div>
-    <button type="button" class="btn-ghost btn-sm" id="copyProfileLink" style="margin-top:0.6rem;">Copy link</button>
+    <div style="display:flex;gap:0.5rem;margin-top:0.6rem;flex-wrap:wrap;">
+      <button type="button" class="btn-ghost btn-sm" id="copyProfileLink">Copy link</button>
+    </div>
   `;
   document.getElementById('copyProfileLink').addEventListener('click', (e) => copyLink(s.ShareCode, e.target));
+  const loggingNote = document.getElementById('loggingContextNote');
+  loggingNote.textContent = isCurrent ? '' : 'You are viewing a past enrollment — sessions logged here will be added to this enrollment, not the current one.';
+  loggingNote.style.color = isCurrent ? '' : 'var(--warn)';
+  const sel = document.getElementById('enrollmentSelect');
+  if(sel){
+    sel.addEventListener('change', () => {
+      selectedEnrollmentId = sel.value;
+      renderProfile();
+    });
+  }
 
-  const rows = log.filter(l => l.StudentName === s.StudentName)
+  renderSessionTable();
+}
+
+// Payment flag for a specific (possibly non-current) enrollment — used when viewing history
+function enrollmentFlag(enr){
+  if(enr.EnrollmentType === 'Package'){
+    const status = enr.PaymentStatus || 'Not paid';
+    if(status === 'Paid in full') return {cls:'flag-green', label:'Paid in full'};
+    if(status === 'Partially paid') return {cls:'flag-amber', label:'Partially paid'};
+    return {cls:'flag-red', label:'Not paid'};
+  }
+  const rows = log.filter(l => l.EnrollmentID === enr.EnrollmentID)
+    .sort((a,b) => new Date(b.SessionDate) - new Date(a.SessionDate));
+  if(rows.length === 0) return null;
+  return rows[0].SessionPaymentStatus === 'Paid'
+    ? {cls:'flag-green', label:'Paid — last session'}
+    : {cls:'flag-red', label:'Unpaid — last session'};
+}
+
+// filter state for the session history table — reset whenever a new profile is opened
+let filterFrom = '';
+let filterTo = '';
+
+function sessionRowsTableHtml(rows){
+  return `
+    <table>
+      <thead><tr><th>Date</th><th>Used</th><th>Finance</th><th>Payment</th><th>Comments</th><th>Internal note</th><th></th></tr></thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr>
+            <td>${fmtDate(r.SessionDate)}</td>
+            <td class="figs">${r.SessionsUsed ?? '-'}</td>
+            <td>${r.Finance || ''}</td>
+            <td><span class="pay-flag ${r.SessionPaymentStatus === 'Paid' ? 'flag-green' : r.SessionPaymentStatus === 'Not needed' ? 'flag-neutral' : 'flag-red'}">${r.SessionPaymentStatus || 'Unpaid'}</span>${r.SessionAmountPaid ? ' $' + r.SessionAmountPaid : ''}</td>
+            <td>${r.Comments || ''}</td>
+            <td style="color:var(--warn);">${r.InternalNote || ''}</td>
+            <td><button type="button" class="btn-ghost btn-sm edit-session" data-id="${r.SessionID}">Edit</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function enrollmentLabel(e, s){
+  return (e.EnrollmentType === 'Package' ? 'Package of ' + e.PackageSize : 'Individual sessions')
+    + ' — started ' + fmtDate(e.StartDate) + (e.EnrollmentID === s.CurrentEnrollmentID ? ' (current)' : '');
+}
+
+function dateOnly(v){
+  if(!v) return '';
+  const d = new Date(v);
+  if(isNaN(d)) return String(v).slice(0,10);
+  return d.toLocaleDateString('en-CA', {timeZone:'Australia/Melbourne'});
+}
+
+function renderSessionTable(){
+  const s = activeStudent;
+
+  if(filterFrom || filterTo){
+    // date range active: show every enrollment's sessions in range, grouped by enrollment
+    const enrollmentIds = (s.Enrollments || []).map(e => e.EnrollmentID);
+    const rows = log.filter(l => enrollmentIds.includes(l.EnrollmentID)).filter(r => {
+      const d = dateOnly(r.SessionDate);
+      if(!d) return false;
+      if(filterFrom && d < filterFrom) return false;
+      if(filterTo && d > filterTo) return false;
+      return true;
+    });
+    const fromLabel = filterFrom ? fmtDate(filterFrom) : 'the start';
+    const toLabel = filterTo ? fmtDate(filterTo) : 'today';
+    filterNote.textContent = `Showing sessions from ${fromLabel} to ${toLabel} across all packages/enrollments — ${rows.length} session${rows.length === 1 ? '' : 's'}.`;
+
+    if(rows.length === 0){
+      tableWrap.innerHTML = '<div class="empty">No sessions in that date range.</div>';
+      return;
+    }
+
+    const byEnrollment = {};
+    rows.forEach(r => {
+      (byEnrollment[r.EnrollmentID] = byEnrollment[r.EnrollmentID] || []).push(r);
+    });
+    // oldest enrollment first, so it reads Package 1, Package 2, ... in order
+    const orderedEnrollments = [...(s.Enrollments || [])].reverse().filter(e => byEnrollment[e.EnrollmentID]);
+
+    tableWrap.innerHTML = orderedEnrollments.map(e => {
+      const sessRows = byEnrollment[e.EnrollmentID].sort((a,b) => new Date(a.SessionDate) - new Date(b.SessionDate));
+      return `<h4 style="margin:1.25rem 0 0.5rem;font-family:'Fraunces',serif;font-size:1rem;">${enrollmentLabel(e, s)}</h4>` + sessionRowsTableHtml(sessRows);
+    }).join('');
+    tableWrap.querySelectorAll('.edit-session').forEach(b => b.addEventListener('click', () => startEditSession(b.dataset.id)));
+    return;
+  }
+
+  // default view: latest 10 sessions of whichever enrollment is selected (defaults to current)
+  const allRows = log.filter(l => l.EnrollmentID === selectedEnrollmentId)
     .sort((a,b) => new Date(b.SessionDate) - new Date(a.SessionDate));
 
-  if(rows.length === 0){
+  const rows = allRows.slice(0, 10);
+  filterNote.textContent = allRows.length > 10
+    ? `Displaying latest 10 sessions — choose a date range above to see this student's full history across all packages.`
+    : '';
+
+  if(allRows.length === 0){
     tableWrap.innerHTML = '<div class="empty">No sessions logged yet for this student.</div>';
-    chartWrap.style.display = 'none';
-  }else{
-    tableWrap.innerHTML = `
-      <table>
-        <thead><tr><th>Date</th><th>Figures</th><th>Used</th><th>Finance</th><th>Comments</th></tr></thead>
-        <tbody>
-          ${rows.map(r => `
-            <tr>
-              <td>${fmtDate(r.SessionDate)}</td>
-              <td class="figs">B ${r.Batting ?? '-'} · Bo ${r.Bowling ?? '-'} · F ${r.Fielding ?? '-'} · Fit ${r.Fitness ?? '-'}</td>
-              <td class="figs">${r.SessionsUsed ?? '-'}</td>
-              <td>${r.Finance || ''}</td>
-              <td>${r.Comments || ''}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
-    renderChart(rows);
+    return;
   }
+
+  tableWrap.innerHTML = sessionRowsTableHtml(rows);
+  tableWrap.querySelectorAll('.edit-session').forEach(b => b.addEventListener('click', () => startEditSession(b.dataset.id)));
 }
 
-function renderChart(rows){
-  const asc = [...rows].sort((a,b) => new Date(a.SessionDate) - new Date(b.SessionDate));
-  chartWrap.style.display = 'block';
-  const ctx = document.getElementById('trendChart');
-  if(trendChart) trendChart.destroy();
-  trendChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: asc.map(r => fmtDate(r.SessionDate)),
-      datasets: [
-        {label:'Batting', data: asc.map(r => Number(r.Batting) || null), borderColor:'#8B2635', backgroundColor:'#8B2635', tension:0.25},
-        {label:'Bowling', data: asc.map(r => Number(r.Bowling) || null), borderColor:'#2a78d6', backgroundColor:'#2a78d6', tension:0.25, borderDash:[4,3]},
-        {label:'Fielding', data: asc.map(r => Number(r.Fielding) || null), borderColor:'#1baf7a', backgroundColor:'#1baf7a', tension:0.25},
-        {label:'Fitness', data: asc.map(r => Number(r.Fitness) || null), borderColor:'#eda100', backgroundColor:'#eda100', tension:0.25, borderDash:[4,3]}
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      scales:{ y:{ min:0, max:10, ticks:{stepSize:2} } },
-      plugins:{ legend:{ position:'bottom', labels:{boxWidth:10, font:{size:11}} } }
-    }
+function setPresetRange(preset){
+  document.querySelectorAll('.filter-presets button[data-preset]').forEach(b => b.classList.toggle('active', b.dataset.preset === preset));
+  const today = new Date();
+  const toStr = today.toISOString().slice(0,10);
+  if(preset === 'all'){
+    filterFrom = ''; filterTo = '';
+    document.getElementById('filterFrom').value = '';
+    document.getElementById('filterTo').value = '';
+  }else{
+    const months = preset === '3m' ? 3 : 6;
+    const from = new Date(today);
+    from.setMonth(from.getMonth() - months);
+    filterFrom = from.toISOString().slice(0,10);
+    filterTo = toStr;
+    document.getElementById('filterFrom').value = filterFrom;
+    document.getElementById('filterTo').value = filterTo;
+  }
+  renderSessionTable();
+}
+
+document.querySelectorAll('.filter-presets button[data-preset]').forEach(b => {
+  b.addEventListener('click', () => setPresetRange(b.dataset.preset));
+});
+document.getElementById('clearFilterBtn').addEventListener('click', () => {
+  filterFrom = ''; filterTo = '';
+  document.getElementById('filterFrom').value = '';
+  document.getElementById('filterTo').value = '';
+  document.querySelectorAll('.filter-presets button[data-preset]').forEach(b => b.classList.remove('active'));
+  renderSessionTable();
+});
+['filterFrom','filterTo'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => {
+    filterFrom = document.getElementById('filterFrom').value;
+    filterTo = document.getElementById('filterTo').value;
+    document.querySelectorAll('.filter-presets button[data-preset]').forEach(b => b.classList.remove('active'));
+    renderSessionTable();
   });
+});
+
+// log / edit session
+function startEditSession(sessionId){
+  const r = log.find(l => String(l.SessionID) === String(sessionId));
+  if(!r) return;
+  editingSessionId = sessionId;
+  document.getElementById('sessionDate').value = r.SessionDate ? new Date(r.SessionDate).toISOString().slice(0,10) : '';
+  document.getElementById('sessionsUsed').value = r.SessionsUsed ?? '';
+  document.getElementById('finance').value = r.Finance || '';
+  document.getElementById('comments').value = r.Comments || '';
+  document.getElementById('internalNote').value = r.InternalNote || '';
+  document.getElementById('sessionPaymentStatus').value = r.SessionPaymentStatus || 'Unpaid';
+  document.getElementById('sessionAmountPaid').value = r.SessionAmountPaid || '';
+  document.getElementById('sessionAmountField').style.display = (r.SessionPaymentStatus === 'Paid') ? 'block' : 'none';
+  document.getElementById('submitBtn').textContent = 'Update session';
+  document.getElementById('cancelEditBtn').classList.remove('hidden');
+  document.getElementById('entryForm').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
-// log session
+function cancelEditSession(){
+  editingSessionId = null;
+  document.getElementById('entryForm').reset();
+  document.getElementById('sessionDate').value = todayMelbourne();
+  document.getElementById('submitBtn').textContent = 'Save session';
+  document.getElementById('cancelEditBtn').classList.add('hidden');
+  document.getElementById('sessionAmountField').style.display = 'none';
+}
+document.getElementById('cancelEditBtn').addEventListener('click', cancelEditSession);
+
 document.getElementById('entryForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const isEdit = !!editingSessionId;
+  const enr = (activeStudent.Enrollments || []).find(x => x.EnrollmentID === selectedEnrollmentId);
+
+  if(enr && enr.EnrollmentType === 'Package' && Number(enr.PackageSize) > 0){
+    const enteredUsed = Number(document.getElementById('sessionsUsed').value) || 0;
+    const editingOwnUsed = isEdit ? (Number((log.find(l => l.SessionID === editingSessionId) || {}).SessionsUsed) || 0) : 0;
+    const baseline = (Number(enr.SessionsUsed) || 0) - editingOwnUsed;
+    const projected = baseline + enteredUsed;
+    const total = Number(enr.PackageSize);
+    if(projected > total){
+      const proceed = confirm(
+        `This would put ${activeStudent.StudentName} at ${projected}/${total} sessions — over the package total.\n\n` +
+        `Click Cancel to fix the number, or start a new package/individual sessions instead from the dashboard.\n` +
+        `Click OK to log it anyway.`
+      );
+      if(!proceed) return;
+    }
+  }
+
   const btn = document.getElementById('submitBtn');
-  btn.disabled = true; btn.textContent = 'Saving…';
+  btn.disabled = true; btn.textContent = isEdit ? 'Updating…' : 'Saving…';
   const payload = {
-    action:'addSession',
+    action: isEdit ? 'editSession' : 'addSession',
+    sessionId: editingSessionId,
     studentName: activeStudent.StudentName,
+    enrollmentId: selectedEnrollmentId,
     sessionDate: document.getElementById('sessionDate').value,
     sessionsUsed: document.getElementById('sessionsUsed').value,
-    batting: document.getElementById('batting').value,
-    bowling: document.getElementById('bowling').value,
-    fielding: document.getElementById('fielding').value,
-    fitness: document.getElementById('fitness').value,
     finance: document.getElementById('finance').value.trim(),
-    comments: document.getElementById('comments').value.trim()
+    comments: document.getElementById('comments').value.trim(),
+    internalNote: document.getElementById('internalNote').value.trim(),
+    sessionPaymentStatus: document.getElementById('sessionPaymentStatus').value,
+    sessionAmountPaid: document.getElementById('sessionAmountPaid').value || 0
   };
   try{
-    await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
-    showMsg(formMsg, 'Session saved.', true);
+    const res = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
+    const result = await res.json();
+    const msg = isEdit ? 'Session updated.' : (result.overwritten ? 'Session for this date already existed — updated it instead of adding a duplicate.' : 'Session saved.');
+    showMsg(formMsg, msg, true);
+    editingSessionId = null;
     e.target.reset();
-    document.getElementById('sessionDate').valueAsDate = new Date();
+    document.getElementById('sessionDate').value = todayMelbourne();
+    document.getElementById('cancelEditBtn').classList.add('hidden');
+    document.getElementById('sessionAmountField').style.display = 'none';
     await loadAll();
   }catch(err){
     showMsg(formMsg, 'Could not save. Try again.', false);
   }finally{
-    btn.disabled = false; btn.textContent = 'Save session';
+    btn.disabled = false; btn.textContent = editingSessionId ? 'Update session' : 'Save session';
   }
 });
 
-// add/edit student modal
+// add/edit student modal — also doubles as the "start new enrollment" modal
 const modalBg = document.getElementById('studentModalBg');
 const studentForm = document.getElementById('studentForm');
 const modalTitle = document.getElementById('modalTitle');
+const stuNameField = document.getElementById('stuNameField');
 const packageSizeField = document.getElementById('packageSizeField');
+const totalAmountField = document.getElementById('totalAmountField');
+const amountPaidField = document.getElementById('amountPaidField');
 
 function toggleEnrollFields(){
   const type = document.querySelector('input[name="enrollType"]:checked').value;
-  packageSizeField.style.display = type === 'Package' ? 'block' : 'none';
+  const isPkg = type === 'Package';
+  packageSizeField.style.display = isPkg ? 'block' : 'none';
+  totalAmountField.style.display = isPkg ? 'block' : 'none';
+  amountPaidField.style.display = isPkg ? 'block' : 'none';
 }
 document.querySelectorAll('input[name="enrollType"]').forEach(r => r.addEventListener('change', toggleEnrollFields));
 
@@ -453,15 +750,24 @@ document.getElementById('cancelStudentBtn').addEventListener('click', () => moda
 
 function openStudentModal(id){
   studentForm.reset();
+  stuNameField.style.display = 'block';
+  document.getElementById('modalMode').value = id ? 'edit' : 'add';
+  document.getElementById('enrollmentEditId').value = '';
   toggleEnrollFields();
   if(id){
     const s = students.find(x => x.StudentID === id);
     modalTitle.textContent = 'Edit student';
     document.getElementById('editingId').value = id;
+    document.getElementById('enrollmentEditId').value = s.CurrentEnrollmentID || '';
     document.getElementById('stuName').value = s.StudentName;
-    document.querySelector(`input[name="enrollType"][value="${s.EnrollmentType}"]`).checked = true;
-    if(s.EnrollmentType === 'Package'){
-      document.getElementById('packageSize').value = s.PackageSize;
+    document.getElementById('enrollStartDate').value = s.EnrollmentStartDate || '';
+    if(s.EnrollmentType){
+      document.querySelector(`input[name="enrollType"][value="${s.EnrollmentType}"]`).checked = true;
+      if(s.EnrollmentType === 'Package'){
+        document.getElementById('packageSize').value = s.PackageSize;
+        document.getElementById('totalAmount').value = s.TotalAmount || '';
+        document.getElementById('amountPaid').value = s.AmountPaid || '';
+      }
     }
     toggleEnrollFields();
   }else{
@@ -471,24 +777,65 @@ function openStudentModal(id){
   modalBg.classList.add('show');
 }
 
+function openNewEnrollmentModal(s){
+  studentForm.reset();
+  stuNameField.style.display = 'none';
+  document.getElementById('modalMode').value = 'newEnrollment';
+  document.getElementById('editingId').value = s.StudentID;
+  document.getElementById('stuName').value = s.StudentName;
+  modalTitle.textContent = 'Start new package / sessions for ' + s.StudentName;
+  toggleEnrollFields();
+  modalBg.classList.add('show');
+}
+
 studentForm.addEventListener('submit', async (e) => {
   e.preventDefault();
+  const mode = document.getElementById('modalMode').value;
   const id = document.getElementById('editingId').value;
   const btn = document.getElementById('saveStudentBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
-
-  const payload = {
-    action: id ? 'editStudent' : 'addStudent',
-    studentId: id,
-    studentName: document.getElementById('stuName').value.trim(),
+  const isPkg = document.querySelector('input[name="enrollType"]:checked').value === 'Package';
+  const enrollmentFields = {
     enrollmentType: document.querySelector('input[name="enrollType"]:checked').value,
-    packageSize: document.querySelector('input[name="enrollType"]:checked').value === 'Package'
-      ? document.getElementById('packageSize').value : ''
+    startDate: document.getElementById('enrollStartDate').value || '',
+    packageSize: isPkg ? document.getElementById('packageSize').value : '',
+    totalAmount: isPkg ? (document.getElementById('totalAmount').value || 0) : '',
+    amountPaid: isPkg ? (document.getElementById('amountPaid').value || 0) : ''
   };
 
   try{
-    await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
+    if(mode === 'add'){
+      await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({
+        action:'addStudent',
+        studentName: document.getElementById('stuName').value.trim(),
+        ...enrollmentFields
+      })});
+    }else if(mode === 'newEnrollment'){
+      const s = students.find(x => x.StudentID === id);
+      await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({
+        action:'addEnrollment',
+        studentId: id,
+        studentName: s.StudentName,
+        ...enrollmentFields
+      })});
+    }else{
+      // edit: rename student, then update their current enrollment's fields
+      await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({
+        action:'editStudent',
+        studentId: id,
+        studentName: document.getElementById('stuName').value.trim()
+      })});
+      const enrollmentId = document.getElementById('enrollmentEditId').value;
+      if(enrollmentId){
+        await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({
+          action:'editEnrollment',
+          enrollmentId,
+          ...enrollmentFields
+        })});
+      }
+    }
     modalBg.classList.remove('show');
+    if(mode === 'newEnrollment'){ selectedEnrollmentId = null; }
     await loadAll();
   }catch(err){
     showMsg(studentMsg, 'Could not save. Try again.', false);
@@ -514,13 +861,19 @@ document.getElementById('exportAllBtn').addEventListener('click', () => {
   const ws = XLSX.utils.json_to_sheet(log);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Sessions');
-  const wsStu = XLSX.utils.json_to_sheet(students.map(({ShareCode, ...rest}) => rest));
+  const wsStu = XLSX.utils.json_to_sheet(students.map(({ShareCode, Enrollments, ...rest}) => rest));
   XLSX.utils.book_append_sheet(wb, wsStu, 'Students');
+  const allEnrollments = students.flatMap(s => s.Enrollments || []);
+  if(allEnrollments.length){
+    const wsEnr = XLSX.utils.json_to_sheet(allEnrollments);
+    XLSX.utils.book_append_sheet(wb, wsEnr, 'Enrollments');
+  }
   XLSX.writeFile(wb, 'coaching_log_all.xlsx');
 });
 
 document.getElementById('exportOneBtn').addEventListener('click', () => {
-  const rows = log.filter(l => l.StudentName === activeStudent.StudentName);
+  const enrollmentIds = (activeStudent.Enrollments || []).map(e => e.EnrollmentID);
+  const rows = log.filter(l => enrollmentIds.includes(l.EnrollmentID));
   if(rows.length === 0) return;
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();

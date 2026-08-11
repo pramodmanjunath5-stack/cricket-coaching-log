@@ -43,7 +43,6 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR075kUlqeEygo4SE4Oo74JEz1XpiRyrCsDRwMZjRMvSTGUmcjC3l7LTxxkB4kYyzvXA/exec";
 const content = document.getElementById('content');
@@ -53,7 +52,7 @@ function fmtDate(v){
   if(!v) return '—';
   const d = new Date(v);
   if(isNaN(d)) return v;
-  return d.toLocaleDateString('en-AU', {day:'2-digit', month:'short', year:'numeric'});
+  return d.toLocaleDateString('en-AU', {day:'2-digit', month:'short', year:'numeric', timeZone:'Australia/Melbourne'});
 }
 
 async function load(){
@@ -87,16 +86,15 @@ async function load(){
       : `<div class="stu-stats"><span>Sessions attended</span><b>${used}</b></div>`;
     html += `</div>`;
 
-    html += `<div class="card"><div class="chart-wrap"><canvas id="trendChart"></canvas></div>`;
+    html += `<div class="card">`;
 
     if(rows.length === 0){
       html += `<div class="empty">No sessions logged yet.</div>`;
     }else{
-      html += `<table><thead><tr><th>Date</th><th>Figures</th><th>Comments</th></tr></thead><tbody>`;
+      html += `<table><thead><tr><th>Date</th><th>Comments</th></tr></thead><tbody>`;
       rows.forEach(r => {
         html += `<tr>
           <td>${fmtDate(r.SessionDate)}</td>
-          <td class="figs">B ${r.Batting ?? '-'} · Bo ${r.Bowling ?? '-'} · F ${r.Fielding ?? '-'} · Fit ${r.Fitness ?? '-'}</td>
           <td>${r.Comments || ''}</td>
         </tr>`;
       });
@@ -104,27 +102,6 @@ async function load(){
     }
     html += `</div>`;
     content.innerHTML = html;
-
-    if(rows.length){
-      const asc = [...rows].sort((a,b) => new Date(a.SessionDate) - new Date(b.SessionDate));
-      new Chart(document.getElementById('trendChart'), {
-        type:'line',
-        data:{
-          labels: asc.map(r => fmtDate(r.SessionDate)),
-          datasets:[
-            {label:'Batting', data: asc.map(r => Number(r.Batting) || null), borderColor:'#8B2635', tension:0.25},
-            {label:'Bowling', data: asc.map(r => Number(r.Bowling) || null), borderColor:'#2a78d6', tension:0.25, borderDash:[4,3]},
-            {label:'Fielding', data: asc.map(r => Number(r.Fielding) || null), borderColor:'#1baf7a', tension:0.25},
-            {label:'Fitness', data: asc.map(r => Number(r.Fitness) || null), borderColor:'#eda100', tension:0.25, borderDash:[4,3]}
-          ]
-        },
-        options:{
-          responsive:true, maintainAspectRatio:false,
-          scales:{ y:{ min:0, max:10, ticks:{stepSize:2} } },
-          plugins:{ legend:{ position:'bottom', labels:{boxWidth:10, font:{size:11}} } }
-        }
-      });
-    }
   }catch(err){
     content.innerHTML = '<div class="empty">Could not load session history.</div>';
   }
