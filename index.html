@@ -526,22 +526,26 @@ function enrollmentFlag(enr){
 let filterFrom = '';
 let filterTo = '';
 
-function sessionRowsTableHtml(rows){
+function sessionRowsTableHtml(rows, enrollmentById){
   return `
     <table>
       <thead><tr><th>Date</th><th>Used</th><th>Finance</th><th>Payment</th><th>Comments</th><th>Internal note</th><th></th></tr></thead>
       <tbody>
-        ${rows.map(r => `
+        ${rows.map(r => {
+          const isUpfront = r.SessionPaymentStatus === 'Paid upfront';
+          const enr = enrollmentById ? enrollmentById[r.EnrollmentID] : null;
+          const amount = isUpfront ? (enr ? enr.AmountPaid : '') : r.SessionAmountPaid;
+          return `
           <tr>
             <td>${fmtDate(r.SessionDate)}</td>
             <td class="figs">${r.SessionsUsed ?? '-'}</td>
             <td>${r.Finance || ''}</td>
-            <td><span class="pay-flag ${r.SessionPaymentStatus === 'Paid' ? 'flag-green' : (r.SessionPaymentStatus === 'Not needed' || r.SessionPaymentStatus === 'Paid upfront') ? 'flag-neutral' : 'flag-red'}">${r.SessionPaymentStatus || 'Unpaid'}</span>${r.SessionAmountPaid ? ' $' + r.SessionAmountPaid : ''}</td>
+            <td><span class="pay-flag ${r.SessionPaymentStatus === 'Paid' ? 'flag-green' : (r.SessionPaymentStatus === 'Not needed' || r.SessionPaymentStatus === 'Paid upfront') ? 'flag-neutral' : 'flag-red'}">${r.SessionPaymentStatus || 'Unpaid'}</span>${amount ? ' $' + amount : ''}</td>
             <td>${r.Comments || ''}</td>
             <td style="color:var(--warn);">${r.InternalNote || ''}</td>
             <td><button type="button" class="btn-ghost btn-sm edit-session" data-id="${r.SessionID}">Edit</button></td>
           </tr>
-        `).join('')}
+        `;}).join('')}
       </tbody>
     </table>
   `;
@@ -587,10 +591,12 @@ function renderSessionTable(){
     });
     // oldest enrollment first, so it reads Package 1, Package 2, ... in order
     const orderedEnrollments = [...(s.Enrollments || [])].reverse().filter(e => byEnrollment[e.EnrollmentID]);
+    const enrollmentById = {};
+    (s.Enrollments || []).forEach(e => { enrollmentById[e.EnrollmentID] = e; });
 
     tableWrap.innerHTML = orderedEnrollments.map(e => {
       const sessRows = byEnrollment[e.EnrollmentID].sort((a,b) => new Date(a.SessionDate) - new Date(b.SessionDate));
-      return `<h4 style="margin:1.25rem 0 0.5rem;font-family:'Fraunces',serif;font-size:1rem;">${enrollmentLabel(e, s)}</h4>` + sessionRowsTableHtml(sessRows);
+      return `<h4 style="margin:1.25rem 0 0.5rem;font-family:'Fraunces',serif;font-size:1rem;">${enrollmentLabel(e, s)}</h4>` + sessionRowsTableHtml(sessRows, enrollmentById);
     }).join('');
     tableWrap.querySelectorAll('.edit-session').forEach(b => b.addEventListener('click', () => startEditSession(b.dataset.id)));
     return;
@@ -610,7 +616,7 @@ function renderSessionTable(){
     return;
   }
 
-  tableWrap.innerHTML = sessionRowsTableHtml(rows);
+  tableWrap.innerHTML = sessionRowsTableHtml(rows, {[selectedEnrollmentId]: (s.Enrollments || []).find(e => e.EnrollmentID === selectedEnrollmentId)});
   tableWrap.querySelectorAll('.edit-session').forEach(b => b.addEventListener('click', () => startEditSession(b.dataset.id)));
 }
 

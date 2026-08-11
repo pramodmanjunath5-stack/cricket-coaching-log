@@ -79,21 +79,24 @@ function enrollmentLabel(e, currentId){
     + ' — started ' + fmtDate(e.StartDate) + (e.EnrollmentID === currentId ? ' (current)' : '');
 }
 
-function sessionTableHtml(rows){
+function sessionTableHtml(rows, enr){
   if(rows.length === 0) return '<div class="empty">No sessions logged yet.</div>';
   return `
     <table>
       <thead><tr><th>Date</th><th>Used</th><th>Finance</th><th>Payment</th><th>Comments</th></tr></thead>
       <tbody>
-        ${rows.map(r => `
+        ${rows.map(r => {
+          const isUpfront = r.SessionPaymentStatus === 'Paid upfront';
+          const amount = isUpfront ? (enr ? enr.AmountPaid : '') : r.SessionAmountPaid;
+          return `
           <tr>
             <td>${fmtDate(r.SessionDate)}</td>
             <td class="figs">${r.SessionsUsed ?? '-'}</td>
             <td>${r.Finance || ''}</td>
-            <td><span class="pay-flag ${r.SessionPaymentStatus === 'Paid' ? 'flag-green' : (r.SessionPaymentStatus === 'Not needed' || r.SessionPaymentStatus === 'Paid upfront') ? 'flag-neutral' : 'flag-red'}">${r.SessionPaymentStatus || 'Unpaid'}</span>${r.SessionAmountPaid ? ' $' + r.SessionAmountPaid : ''}</td>
+            <td><span class="pay-flag ${r.SessionPaymentStatus === 'Paid' ? 'flag-green' : (r.SessionPaymentStatus === 'Not needed' || r.SessionPaymentStatus === 'Paid upfront') ? 'flag-neutral' : 'flag-red'}">${r.SessionPaymentStatus || 'Unpaid'}</span>${amount ? ' $' + amount : ''}</td>
             <td>${r.Comments || ''}</td>
           </tr>
-        `).join('')}
+        `;}).join('')}
       </tbody>
     </table>
   `;
@@ -158,7 +161,7 @@ async function load(){
         const rows = (byEnrollment[e.EnrollmentID] || []).sort((a,b) => new Date(b.SessionDate) - new Date(a.SessionDate));
         if(rows.length === 0) return;
         html += `<h3 class="enrollment-title">${enrollmentLabel(e, student.CurrentEnrollmentID)}</h3>`;
-        html += sessionTableHtml(rows);
+        html += sessionTableHtml(rows, e);
       });
     }
     html += `</div>`;
