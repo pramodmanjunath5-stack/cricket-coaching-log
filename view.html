@@ -15,16 +15,25 @@
   }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;padding:2rem 1.25rem 4rem;}
-  .wrap{max-width:720px;margin:0 auto;}
+  .wrap{max-width:820px;margin:0 auto;}
   header{border-bottom:2px solid var(--ink);padding-bottom:1rem;margin-bottom:1.5rem;}
   header h1{font-family:'Fraunces',serif;font-weight:600;font-size:1.7rem;margin:0;}
   header p{margin:0.25rem 0 0;color:var(--ink-soft);font-size:0.88rem;}
   .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.5rem;margin-bottom:1.25rem;}
-  .stu-stats{display:flex;justify-content:space-between;align-items:baseline;font-size:0.9rem;}
-  .stu-stats b{font-family:'IBM Plex Mono',monospace;font-size:1.15rem;}
-  .bar{height:8px;border-radius:5px;background:var(--paper-line);margin-top:0.6rem;overflow:hidden;}
+  .stu-top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:0.5rem;}
+  .stu-stats{display:flex;justify-content:space-between;align-items:baseline;font-size:0.9rem;margin-top:0.6rem;}
+  .stu-stats b{font-family:'IBM Plex Mono',monospace;font-size:1.1rem;}
+  .bar{height:8px;border-radius:5px;background:var(--paper-line);margin-top:0.5rem;overflow:hidden;}
   .bar-fill{height:100%;background:linear-gradient(90deg,var(--willow),var(--ball));border-radius:5px;}
-  .chart-wrap{position:relative;height:210px;margin:0.5rem 0 1.25rem;}
+  .meta{color:var(--ink-soft);font-size:0.85rem;margin-top:0.3rem;}
+  .pay-flag{display:inline-block;font-size:0.72rem;font-weight:600;padding:0.2rem 0.6rem;border-radius:99px;white-space:nowrap;}
+  .flag-green{background:#E4F2EC;color:#1a7a4c;}
+  .flag-amber{background:#FCF0DA;color:#a3690f;}
+  .flag-red{background:#FBE7E6;color:#b3261e;}
+  .flag-neutral{background:#EDEEF0;color:#5B6B82;}
+  h2.section-title{font-family:'Fraunces',serif;font-size:1.15rem;margin:0 0 1rem;}
+  h3.enrollment-title{font-family:'Fraunces',serif;font-size:1rem;margin:1.5rem 0 0.6rem;}
+  h3.enrollment-title:first-child{margin-top:0;}
   table{width:100%;border-collapse:collapse;font-size:0.86rem;}
   thead th{text-align:left;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);padding:0.5rem;border-bottom:2px solid var(--ink);}
   tbody td{padding:0.6rem 0.5rem;border-bottom:1px solid var(--paper-line);vertical-align:top;}
@@ -55,6 +64,41 @@ function fmtDate(v){
   return d.toLocaleDateString('en-AU', {day:'2-digit', month:'short', year:'numeric', timeZone:'Australia/Melbourne'});
 }
 
+function enrollmentFlag(enr){
+  if(enr.EnrollmentType === 'Package'){
+    const status = enr.PaymentStatus || 'Not paid';
+    if(status === 'Paid in full') return {cls:'flag-green', label:'Paid in full'};
+    if(status === 'Partially paid') return {cls:'flag-amber', label:'Partially paid'};
+    return {cls:'flag-red', label:'Not paid'};
+  }
+  return null; // individual flag is computed per-session in the table itself
+}
+
+function enrollmentLabel(e, currentId){
+  return (e.EnrollmentType === 'Package' ? 'Package of ' + e.PackageSize : 'Individual sessions')
+    + ' — started ' + fmtDate(e.StartDate) + (e.EnrollmentID === currentId ? ' (current)' : '');
+}
+
+function sessionTableHtml(rows){
+  if(rows.length === 0) return '<div class="empty">No sessions logged yet.</div>';
+  return `
+    <table>
+      <thead><tr><th>Date</th><th>Used</th><th>Finance</th><th>Payment</th><th>Comments</th></tr></thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr>
+            <td>${fmtDate(r.SessionDate)}</td>
+            <td class="figs">${r.SessionsUsed ?? '-'}</td>
+            <td>${r.Finance || ''}</td>
+            <td><span class="pay-flag ${r.SessionPaymentStatus === 'Paid' ? 'flag-green' : (r.SessionPaymentStatus === 'Not needed' || r.SessionPaymentStatus === 'Paid upfront') ? 'flag-neutral' : 'flag-red'}">${r.SessionPaymentStatus || 'Unpaid'}</span>${r.SessionAmountPaid ? ' $' + r.SessionAmountPaid : ''}</td>
+            <td>${r.Comments || ''}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
 async function load(){
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
@@ -72,35 +116,53 @@ async function load(){
     }
     pageTitle.textContent = student.StudentName + "'s sessions";
 
-    const isPkg = student.EnrollmentType === 'Package' && student.PackageSize;
-    const used = Number(student.SessionsUsed) || 0;
-    const total = isPkg ? Number(student.PackageSize) : null;
-    const pct = isPkg ? Math.min(100, (used/total)*100) : 0;
+    const enrollments = student.Enrollments || [];
+    const current = enrollments.find(e => e.EnrollmentID === student.CurrentEnrollmentID) || enrollments[0];
 
-    const rows = (data.log || []).filter(l => l.StudentName === student.StudentName)
-      .sort((a,b) => new Date(b.SessionDate) - new Date(a.SessionDate));
+    let html = '';
 
-    let html = `<div class="card">`;
-    html += isPkg
-      ? `<div class="stu-stats"><span>Sessions attended</span><b>${used}/${total}</b></div><div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>`
-      : `<div class="stu-stats"><span>Sessions attended</span><b>${used}</b></div>`;
-    html += `</div>`;
+    // current status card
+    if(current){
+      const isPkg = current.EnrollmentType === 'Package' && current.PackageSize;
+      const used = Number(current.SessionsUsed) || 0;
+      const total = isPkg ? Number(current.PackageSize) : null;
+      const pct = isPkg ? Math.min(100, (used/total)*100) : 0;
+      const flag = enrollmentFlag(current);
 
-    html += `<div class="card">`;
+      html += `<div class="card">
+        <div class="stu-top">
+          <div style="font-family:'Fraunces',serif;font-weight:600;font-size:1.1rem;">${isPkg ? 'Package of ' + total : 'Individual sessions'}</div>
+          ${flag ? `<span class="pay-flag ${flag.cls}">${flag.label}</span>` : ''}
+        </div>
+        <div class="meta">Started ${fmtDate(current.StartDate)} · Last session ${fmtDate(current.LastSession)}</div>
+        ${isPkg ? `
+          <div class="stu-stats"><span>Sessions attended</span><b>${used}/${total}</b></div>
+          <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+          ${current.TotalAmount ? `<div class="stu-stats" style="margin-top:0.5rem;"><span>Amount paid</span><b>$${current.AmountPaidTotal || 0} / $${current.TotalAmount}</b></div>` : ''}
+        ` : `<div class="stu-stats"><span>Sessions logged</span><b>${used}</b></div>`}
+      </div>`;
+    }
 
-    if(rows.length === 0){
+    // full history, grouped by enrollment, oldest first
+    const enrollmentIds = enrollments.map(e => e.EnrollmentID);
+    const allRows = (data.log || []).filter(l => enrollmentIds.includes(l.EnrollmentID));
+    const byEnrollment = {};
+    allRows.forEach(r => { (byEnrollment[r.EnrollmentID] = byEnrollment[r.EnrollmentID] || []).push(r); });
+    const orderedEnrollments = [...enrollments].reverse();
+
+    html += `<div class="card"><h2 class="section-title">Full session history</h2>`;
+    if(orderedEnrollments.length === 0 || allRows.length === 0){
       html += `<div class="empty">No sessions logged yet.</div>`;
     }else{
-      html += `<table><thead><tr><th>Date</th><th>Comments</th></tr></thead><tbody>`;
-      rows.forEach(r => {
-        html += `<tr>
-          <td>${fmtDate(r.SessionDate)}</td>
-          <td>${r.Comments || ''}</td>
-        </tr>`;
+      orderedEnrollments.forEach(e => {
+        const rows = (byEnrollment[e.EnrollmentID] || []).sort((a,b) => new Date(b.SessionDate) - new Date(a.SessionDate));
+        if(rows.length === 0) return;
+        html += `<h3 class="enrollment-title">${enrollmentLabel(e, student.CurrentEnrollmentID)}</h3>`;
+        html += sessionTableHtml(rows);
       });
-      html += `</tbody></table>`;
     }
     html += `</div>`;
+
     content.innerHTML = html;
   }catch(err){
     content.innerHTML = '<div class="empty">Could not load session history.</div>';

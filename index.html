@@ -154,6 +154,7 @@
             <select id="sessionPaymentStatus">
               <option value="Unpaid">Unpaid — last session</option>
               <option value="Paid">Paid — last session</option>
+              <option value="Paid upfront" id="paidUpfrontOption">Paid upfront (already covered)</option>
               <option value="Not needed">Payment not needed</option>
             </select>
           </div>
@@ -442,6 +443,13 @@ function renderProfile(){
   const url = VIEWER_BASE + "?code=" + s.ShareCode;
   const flag = isCurrent ? paymentFlagFor(s) : enrollmentFlag(enr);
 
+  const paidUpfrontOpt = document.getElementById('paidUpfrontOption');
+  paidUpfrontOpt.hidden = !isPkg;
+  const paymentSelect = document.getElementById('sessionPaymentStatus');
+  if(!isPkg && paymentSelect.value === 'Paid upfront'){
+    paymentSelect.value = 'Unpaid';
+  }
+
   const enrollOptions = (s.Enrollments || []).map(e => {
     const label = (e.EnrollmentType === 'Package' ? 'Package of ' + e.PackageSize : 'Individual sessions')
       + ' — started ' + fmtDate(e.StartDate) + (e.EnrollmentID === s.CurrentEnrollmentID ? ' (current)' : '');
@@ -528,7 +536,7 @@ function sessionRowsTableHtml(rows){
             <td>${fmtDate(r.SessionDate)}</td>
             <td class="figs">${r.SessionsUsed ?? '-'}</td>
             <td>${r.Finance || ''}</td>
-            <td><span class="pay-flag ${r.SessionPaymentStatus === 'Paid' ? 'flag-green' : r.SessionPaymentStatus === 'Not needed' ? 'flag-neutral' : 'flag-red'}">${r.SessionPaymentStatus || 'Unpaid'}</span>${r.SessionAmountPaid ? ' $' + r.SessionAmountPaid : ''}</td>
+            <td><span class="pay-flag ${r.SessionPaymentStatus === 'Paid' ? 'flag-green' : (r.SessionPaymentStatus === 'Not needed' || r.SessionPaymentStatus === 'Paid upfront') ? 'flag-neutral' : 'flag-red'}">${r.SessionPaymentStatus || 'Unpaid'}</span>${r.SessionAmountPaid ? ' $' + r.SessionAmountPaid : ''}</td>
             <td>${r.Comments || ''}</td>
             <td style="color:var(--warn);">${r.InternalNote || ''}</td>
             <td><button type="button" class="btn-ghost btn-sm edit-session" data-id="${r.SessionID}">Edit</button></td>
