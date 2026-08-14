@@ -65,7 +65,7 @@ function fmtDate(v){
 }
 
 function enrollmentFlag(enr){
-  if(enr.EnrollmentType === 'Package'){
+  if(enr.EnrollmentType === 'Package' || enr.EnrollmentType === 'PackageMoney'){
     const status = enr.PaymentStatus || 'Not paid';
     if(status === 'Paid in full') return {cls:'flag-green', label:'Paid in full'};
     if(status === 'Partially paid') return {cls:'flag-amber', label:'Partially paid'};
@@ -75,7 +75,9 @@ function enrollmentFlag(enr){
 }
 
 function enrollmentLabel(e, currentId){
-  return (e.EnrollmentType === 'Package' ? 'Package of ' + e.PackageSize : 'Individual sessions')
+  return (e.EnrollmentType === 'Package' ? (e.PackageSize && e.PackageSize !== 'N/A' ? 'Package of ' + e.PackageSize + ' sessions' : 'Package (flexible size)')
+    : e.EnrollmentType === 'PackageMoney' ? 'Package of $' + e.TotalAmount
+    : 'Individual sessions')
     + ' — started ' + fmtDate(e.StartDate) + (e.EnrollmentID === currentId ? ' (current)' : '');
 }
 
@@ -88,10 +90,13 @@ function sessionTableHtml(rows, enr){
         ${rows.map(r => {
           const isUpfront = r.SessionPaymentStatus === 'Paid upfront';
           const amount = isUpfront ? (enr ? enr.AmountPaid : '') : r.SessionAmountPaid;
+          const usedCell = (enr && enr.EnrollmentType === 'PackageMoney')
+            ? (r.SessionAmountUsed ? '$' + r.SessionAmountUsed : '-')
+            : (r.SessionsUsed ?? '-');
           return `
           <tr>
             <td>${fmtDate(r.SessionDate)}</td>
-            <td class="figs">${r.SessionsUsed ?? '-'}</td>
+            <td class="figs">${usedCell}</td>
             <td>${r.Finance || ''}</td>
             <td><span class="pay-flag ${r.SessionPaymentStatus === 'Paid' ? 'flag-green' : (r.SessionPaymentStatus === 'Not needed' || r.SessionPaymentStatus === 'Paid upfront') ? 'flag-neutral' : 'flag-red'}">${r.SessionPaymentStatus || 'Unpaid'}</span>${amount ? ' $' + amount : ''}</td>
             <td>${r.Comments || ''}</td>
@@ -126,21 +131,33 @@ async function load(){
 
     // current status card
     if(current){
-      const isPkg = current.EnrollmentType === 'Package' && current.PackageSize;
+      const isPkg = current.EnrollmentType === 'Package' && current.PackageSize && current.PackageSize !== 'N/A';
+      const isFlexPkg = current.EnrollmentType === 'Package' && (!current.PackageSize || current.PackageSize === 'N/A');
+      const isMoneyPkg = current.EnrollmentType === 'PackageMoney';
       const used = Number(current.SessionsUsed) || 0;
       const total = isPkg ? Number(current.PackageSize) : null;
       const pct = isPkg ? Math.min(100, (used/total)*100) : 0;
+      const amountUsed = Number(current.AmountUsedTotal) || 0;
+      const moneyTotal = isMoneyPkg ? Number(current.TotalAmount) || 0 : null;
+      const moneyPct = isMoneyPkg && moneyTotal > 0 ? Math.min(100, (amountUsed/moneyTotal)*100) : 0;
       const flag = enrollmentFlag(current);
 
       html += `<div class="card">
         <div class="stu-top">
-          <div style="font-family:'Fraunces',serif;font-weight:600;font-size:1.1rem;">${isPkg ? 'Package of ' + total : 'Individual sessions'}</div>
+          <div style="font-family:'Fraunces',serif;font-weight:600;font-size:1.1rem;">${isPkg ? 'Package of ' + total + ' sessions' : isFlexPkg ? 'Package (flexible size)' : isMoneyPkg ? 'Package of $' + moneyTotal : 'Individual sessions'}</div>
           ${flag ? `<span class="pay-flag ${flag.cls}">${flag.label}</span>` : ''}
         </div>
         <div class="meta">Started ${fmtDate(current.StartDate)} · Last session ${fmtDate(current.LastSession)}</div>
         ${isPkg ? `
           <div class="stu-stats"><span>Sessions attended</span><b>${used}/${total}</b></div>
           <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+          ${current.TotalAmount ? `<div class="stu-stats" style="margin-top:0.5rem;"><span>Amount paid</span><b>$${current.AmountPaidTotal || 0} / $${current.TotalAmount}</b></div>` : ''}
+        ` : isMoneyPkg ? `
+          <div class="stu-stats"><span>Sessions done</span><b>${used}</b></div>
+          <div class="bar" style="margin-top:0.5rem;"><div class="bar-fill" style="width:${moneyPct}%"></div></div>
+          <div class="stu-stats" style="margin-top:0.5rem;"><span>Amount used</span><b>$${amountUsed} / $${moneyTotal}</b></div>
+        ` : isFlexPkg ? `
+          <div class="stu-stats"><span>Sessions logged</span><b>${used}</b></div>
           ${current.TotalAmount ? `<div class="stu-stats" style="margin-top:0.5rem;"><span>Amount paid</span><b>$${current.AmountPaidTotal || 0} / $${current.TotalAmount}</b></div>` : ''}
         ` : `<div class="stu-stats"><span>Sessions logged</span><b>${used}</b></div>`}
       </div>`;

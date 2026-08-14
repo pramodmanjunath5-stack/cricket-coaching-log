@@ -143,9 +143,13 @@
             <label for="sessionDate">Session date</label>
             <input type="date" id="sessionDate" required>
           </div>
-          <div class="field">
+          <div class="field" id="sessionsUsedField">
             <label for="sessionsUsed">Sessions used</label>
             <select id="sessionsUsed" required></select>
+          </div>
+          <div class="field" id="amountUsedField" style="display:none;">
+            <label for="sessionAmountUsed">Amount used this session ($)</label>
+            <input type="number" id="sessionAmountUsed" min="0" step="0.01" placeholder="0.00">
           </div>
 
           <div class="field full"><label for="finance">Finance</label><input type="text" id="finance" placeholder="e.g. Paid - $50 cash"></div>
@@ -216,7 +220,8 @@
         <label>Enrollment</label>
         <div class="radio-row">
           <label><input type="radio" name="enrollType" value="Individual" checked> Individual sessions</label>
-          <label><input type="radio" name="enrollType" value="Package"> Package</label>
+          <label><input type="radio" name="enrollType" value="Package"> Package (sessions)</label>
+          <label><input type="radio" name="enrollType" value="PackageMoney"> Package (money)</label>
         </div>
       </div>
       <div class="field">
@@ -277,7 +282,7 @@ function buildHalfSteps(selectEl, max, placeholder){
   }
 }
 function buildWholeSteps(selectEl, max){
-  selectEl.innerHTML = '';
+  selectEl.innerHTML = '<option value="N/A">N/A (no fixed number)</option>';
   for(let v=1; v<=max; v++){
     selectEl.innerHTML += `<option value="${v}">${v}</option>`;
   }
@@ -308,7 +313,7 @@ function todayMelbourne(){
 // Package students: driven by their profile-level PaymentStatus.
 // Individual students: driven by the payment status logged on their most recent session.
 function paymentFlagFor(s){
-  const isPkg = s.EnrollmentType === 'Package';
+  const isPkg = s.EnrollmentType === 'Package' || s.EnrollmentType === 'PackageMoney';
   if(isPkg){
     const status = s.PaymentStatus || 'Not paid';
     if(status === 'Paid in full') return {cls:'flag-green', label:'Paid in full'};
@@ -352,10 +357,15 @@ function renderLanding(){
     return;
   }
   studentsGrid.innerHTML = students.map(s => {
-    const isPkg = s.EnrollmentType === 'Package' && s.PackageSize;
+    const isPkg = s.EnrollmentType === 'Package' && s.PackageSize && s.PackageSize !== 'N/A';
+    const isFlexPkg = s.EnrollmentType === 'Package' && (!s.PackageSize || s.PackageSize === 'N/A');
+    const isMoneyPkg = s.EnrollmentType === 'PackageMoney';
     const used = Number(s.SessionsUsed) || 0;
     const total = isPkg ? Number(s.PackageSize) : null;
     const pct = isPkg ? Math.min(100, (used/total)*100) : 0;
+    const amountUsed = Number(s.AmountUsedTotal) || 0;
+    const moneyTotal = isMoneyPkg ? Number(s.TotalAmount) || 0 : null;
+    const moneyPct = isMoneyPkg && moneyTotal > 0 ? Math.min(100, (amountUsed/moneyTotal)*100) : 0;
     const flag = paymentFlagFor(s);
     return `
       <div class="stu-card">
@@ -363,10 +373,14 @@ function renderLanding(){
           <div class="stu-name">${s.StudentName}</div>
           ${flag ? `<span class="pay-flag ${flag.cls}">${flag.label}</span>` : ''}
         </div>
-        <div class="stu-meta">${isPkg ? 'Package of ' + total : 'Individual sessions'} · Last: ${fmtDate(s.LastSession)}</div>
+        <div class="stu-meta">${isPkg ? 'Package of ' + total + ' sessions' : isFlexPkg ? 'Package (flexible size)' : isMoneyPkg ? 'Package of $' + moneyTotal : 'Individual sessions'} · Last: ${fmtDate(s.LastSession)}</div>
         ${isPkg ? `
           <div class="stu-stats"><span>Sessions</span><b>${used}/${total}</b></div>
           <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+        ` : isMoneyPkg ? `
+          <div class="stu-stats"><span>Sessions done</span><b>${used}</b></div>
+          <div class="bar" style="margin-top:0.3rem;"><div class="bar-fill" style="width:${moneyPct}%"></div></div>
+          <div class="stu-stats" style="margin-top:0.3rem;"><span>Amount used</span><b>$${amountUsed}/$${moneyTotal}</b></div>
         ` : `
           <div class="stu-stats"><span>Sessions logged</span><b>${used}</b></div>
         `}
@@ -435,23 +449,35 @@ function renderProfile(){
     return;
   }
 
-  const isPkg = enr.EnrollmentType === 'Package' && enr.PackageSize;
+  const isPkg = enr.EnrollmentType === 'Package' && enr.PackageSize && enr.PackageSize !== 'N/A';
+  const isFlexPkg = enr.EnrollmentType === 'Package' && (!enr.PackageSize || enr.PackageSize === 'N/A');
+  const isMoneyPkg = enr.EnrollmentType === 'PackageMoney';
+  const isAnyPkg = enr.EnrollmentType === 'Package' || isMoneyPkg;
   const used = Number(enr.SessionsUsed) || 0;
   const total = isPkg ? Number(enr.PackageSize) : null;
   const pct = isPkg ? Math.min(100, (used/total)*100) : 0;
+  const amountUsed = Number(enr.AmountUsedTotal) || 0;
+  const moneyTotal = isMoneyPkg ? Number(enr.TotalAmount) || 0 : null;
+  const moneyPct = isMoneyPkg && moneyTotal > 0 ? Math.min(100, (amountUsed/moneyTotal)*100) : 0;
   const isCurrent = enr.EnrollmentID === s.CurrentEnrollmentID;
   const url = VIEWER_BASE + "?code=" + s.ShareCode;
   const flag = isCurrent ? paymentFlagFor(s) : enrollmentFlag(enr);
 
   const paidUpfrontOpt = document.getElementById('paidUpfrontOption');
-  paidUpfrontOpt.hidden = !isPkg;
+  paidUpfrontOpt.hidden = !isAnyPkg;
   const paymentSelect = document.getElementById('sessionPaymentStatus');
-  if(!isPkg && paymentSelect.value === 'Paid upfront'){
+  if(!isAnyPkg && paymentSelect.value === 'Paid upfront'){
     paymentSelect.value = 'Unpaid';
   }
+  document.getElementById('sessionsUsedField').style.display = 'block';
+  document.getElementById('sessionsUsed').required = !isMoneyPkg;
+  document.querySelector('#sessionsUsedField label').textContent = isMoneyPkg ? 'Sessions done this visit (optional)' : 'Sessions used';
+  document.getElementById('amountUsedField').style.display = isMoneyPkg ? 'block' : 'none';
 
   const enrollOptions = (s.Enrollments || []).map(e => {
-    const label = (e.EnrollmentType === 'Package' ? 'Package of ' + e.PackageSize : 'Individual sessions')
+    const label = (e.EnrollmentType === 'Package' ? (e.PackageSize && e.PackageSize !== 'N/A' ? 'Package of ' + e.PackageSize + ' sessions' : 'Package (flexible size)')
+      : e.EnrollmentType === 'PackageMoney' ? 'Package of $' + e.TotalAmount
+      : 'Individual sessions')
       + ' — started ' + fmtDate(e.StartDate) + (e.EnrollmentID === s.CurrentEnrollmentID ? ' (current)' : '');
     return `<option value="${e.EnrollmentID}" ${e.EnrollmentID === selectedEnrollmentId ? 'selected' : ''}>${label}</option>`;
   }).join('');
@@ -460,11 +486,12 @@ function renderProfile(){
   const oldestFirst = [...allEnr].reverse();
   const typeAsc = oldestFirst.filter(e => e.EnrollmentType === enr.EnrollmentType);
   const ordinal = typeAsc.findIndex(e => e.EnrollmentID === enr.EnrollmentID) + 1;
-  const completedPackages = allEnr.filter(e => e.EnrollmentType === 'Package' && e.EnrollmentID !== s.CurrentEnrollmentID).length;
+  const completedPackages = allEnr.filter(e => (e.EnrollmentType === 'Package' || e.EnrollmentType === 'PackageMoney') && e.EnrollmentID !== s.CurrentEnrollmentID).length;
   const completedIndividual = allEnr.filter(e => e.EnrollmentType === 'Individual' && e.EnrollmentID !== s.CurrentEnrollmentID).length;
+  const currentTypeLabel = isPkg ? 'package' : isMoneyPkg ? 'money package' : 'individual sessions';
   const historyLine = allEnr.length > 1
     ? `History: ${completedPackages} completed package${completedPackages === 1 ? '' : 's'} · ${completedIndividual} individual-session cycle${completedIndividual === 1 ? '' : 's'}` +
-      (isCurrent ? ` — currently on ${isPkg ? 'package' : 'individual sessions'} #${ordinal}.` : ` (viewing ${isPkg ? 'package' : 'individual sessions'} #${ordinal}).`)
+      (isCurrent ? ` — currently on ${currentTypeLabel} #${ordinal}.` : ` (viewing ${currentTypeLabel} #${ordinal}).`)
     : '';
 
   profileHeaderCard.innerHTML = `
@@ -479,10 +506,17 @@ function renderProfile(){
         <select id="enrollmentSelect">${enrollOptions}</select>
       </div>
     ` : ''}
-    <div class="stu-meta" style="margin-top:0.6rem;">${isPkg ? 'Package of ' + total : 'Individual sessions'} · Last session: ${fmtDate(enr.LastSession)}</div>
+    <div class="stu-meta" style="margin-top:0.6rem;">${isPkg ? 'Package of ' + total + ' sessions' : isFlexPkg ? 'Package (flexible size)' : isMoneyPkg ? 'Package of $' + (enr.TotalAmount || 0) : 'Individual sessions'} · Last session: ${fmtDate(enr.LastSession)}</div>
     ${isPkg ? `
       <div class="stu-stats"><span>Sessions attended</span><b>${used}/${total} <span style="font-weight:400;color:var(--ink-soft);font-family:'Inter',sans-serif;font-size:0.85rem;">(${Math.max(0,total-used)} to go)</span></b></div>
       <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+      ${enr.TotalAmount ? `<div class="stu-stats" style="margin-top:0.4rem;"><span>Amount paid</span><b>$${enr.AmountPaidTotal || 0} / $${enr.TotalAmount}</b></div>` : ''}
+    ` : isMoneyPkg ? `
+      <div class="stu-stats"><span>Sessions done</span><b>${used}</b></div>
+      <div class="bar" style="margin-top:0.4rem;"><div class="bar-fill" style="width:${moneyPct}%"></div></div>
+      <div class="stu-stats" style="margin-top:0.4rem;"><span>Amount used</span><b>$${amountUsed} / $${moneyTotal} <span style="font-weight:400;color:var(--ink-soft);font-family:'Inter',sans-serif;font-size:0.85rem;">($${Math.max(0,moneyTotal-amountUsed)} remaining)</span></b></div>
+    ` : isFlexPkg ? `
+      <div class="stu-stats"><span>Sessions logged</span><b>${used}</b></div>
       ${enr.TotalAmount ? `<div class="stu-stats" style="margin-top:0.4rem;"><span>Amount paid</span><b>$${enr.AmountPaidTotal || 0} / $${enr.TotalAmount}</b></div>` : ''}
     ` : `<div class="stu-stats"><span>Sessions logged</span><b>${used}</b></div>`}
     <label style="display:block;margin-top:1rem;">Parent view link (read-only)</label>
@@ -508,7 +542,7 @@ function renderProfile(){
 
 // Payment flag for a specific (possibly non-current) enrollment — used when viewing history
 function enrollmentFlag(enr){
-  if(enr.EnrollmentType === 'Package'){
+  if(enr.EnrollmentType === 'Package' || enr.EnrollmentType === 'PackageMoney'){
     const status = enr.PaymentStatus || 'Not paid';
     if(status === 'Paid in full') return {cls:'flag-green', label:'Paid in full'};
     if(status === 'Partially paid') return {cls:'flag-amber', label:'Partially paid'};
@@ -535,15 +569,21 @@ function sessionRowsTableHtml(rows, enrollmentById){
           const isUpfront = r.SessionPaymentStatus === 'Paid upfront';
           const enr = enrollmentById ? enrollmentById[r.EnrollmentID] : null;
           const amount = isUpfront ? (enr ? enr.AmountPaid : '') : r.SessionAmountPaid;
+          const usedCell = (enr && enr.EnrollmentType === 'PackageMoney')
+            ? (r.SessionAmountUsed ? '$' + r.SessionAmountUsed : '-')
+            : (r.SessionsUsed ?? '-');
           return `
           <tr>
             <td>${fmtDate(r.SessionDate)}</td>
-            <td class="figs">${r.SessionsUsed ?? '-'}</td>
+            <td class="figs">${usedCell}</td>
             <td>${r.Finance || ''}</td>
             <td><span class="pay-flag ${r.SessionPaymentStatus === 'Paid' ? 'flag-green' : (r.SessionPaymentStatus === 'Not needed' || r.SessionPaymentStatus === 'Paid upfront') ? 'flag-neutral' : 'flag-red'}">${r.SessionPaymentStatus || 'Unpaid'}</span>${amount ? ' $' + amount : ''}</td>
             <td>${r.Comments || ''}</td>
             <td style="color:var(--warn);">${r.InternalNote || ''}</td>
-            <td><button type="button" class="btn-ghost btn-sm edit-session" data-id="${r.SessionID}">Edit</button></td>
+            <td style="white-space:nowrap;">
+              <button type="button" class="btn-ghost btn-sm edit-session" data-id="${r.SessionID}">Edit</button>
+              <button type="button" class="btn-danger btn-sm delete-session" data-id="${r.SessionID}" style="margin-left:0.35rem;">Del</button>
+            </td>
           </tr>
         `;}).join('')}
       </tbody>
@@ -552,7 +592,9 @@ function sessionRowsTableHtml(rows, enrollmentById){
 }
 
 function enrollmentLabel(e, s){
-  return (e.EnrollmentType === 'Package' ? 'Package of ' + e.PackageSize : 'Individual sessions')
+  return (e.EnrollmentType === 'Package' ? (e.PackageSize && e.PackageSize !== 'N/A' ? 'Package of ' + e.PackageSize + ' sessions' : 'Package (flexible size)')
+    : e.EnrollmentType === 'PackageMoney' ? 'Package of $' + e.TotalAmount
+    : 'Individual sessions')
     + ' — started ' + fmtDate(e.StartDate) + (e.EnrollmentID === s.CurrentEnrollmentID ? ' (current)' : '');
 }
 
@@ -599,6 +641,7 @@ function renderSessionTable(){
       return `<h4 style="margin:1.25rem 0 0.5rem;font-family:'Fraunces',serif;font-size:1rem;">${enrollmentLabel(e, s)}</h4>` + sessionRowsTableHtml(sessRows, enrollmentById);
     }).join('');
     tableWrap.querySelectorAll('.edit-session').forEach(b => b.addEventListener('click', () => startEditSession(b.dataset.id)));
+    tableWrap.querySelectorAll('.delete-session').forEach(b => b.addEventListener('click', () => deleteSession(b.dataset.id)));
     return;
   }
 
@@ -618,6 +661,7 @@ function renderSessionTable(){
 
   tableWrap.innerHTML = sessionRowsTableHtml(rows, {[selectedEnrollmentId]: (s.Enrollments || []).find(e => e.EnrollmentID === selectedEnrollmentId)});
   tableWrap.querySelectorAll('.edit-session').forEach(b => b.addEventListener('click', () => startEditSession(b.dataset.id)));
+    tableWrap.querySelectorAll('.delete-session').forEach(b => b.addEventListener('click', () => deleteSession(b.dataset.id)));
 }
 
 function setPresetRange(preset){
@@ -660,12 +704,24 @@ document.getElementById('clearFilterBtn').addEventListener('click', () => {
 });
 
 // log / edit session
+async function deleteSession(sessionId){
+  if(!confirm('Delete this session? This cannot be undone.')) return;
+  try{
+    await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({ action:'deleteSession', sessionId }) });
+    if(editingSessionId === sessionId){ cancelEditSession(); }
+    await loadAll();
+  }catch(err){
+    alert('Could not delete. Try again.');
+  }
+}
+
 function startEditSession(sessionId){
   const r = log.find(l => String(l.SessionID) === String(sessionId));
   if(!r) return;
   editingSessionId = sessionId;
   document.getElementById('sessionDate').value = r.SessionDate ? dateOnly(r.SessionDate) : '';
   document.getElementById('sessionsUsed').value = r.SessionsUsed ?? '';
+  document.getElementById('sessionAmountUsed').value = r.SessionAmountUsed || '';
   document.getElementById('finance').value = r.Finance || '';
   document.getElementById('comments').value = r.Comments || '';
   document.getElementById('internalNote').value = r.InternalNote || '';
@@ -708,6 +764,22 @@ document.getElementById('entryForm').addEventListener('submit', async (e) => {
     }
   }
 
+  if(enr && enr.EnrollmentType === 'PackageMoney' && Number(enr.TotalAmount) > 0){
+    const enteredAmount = Number(document.getElementById('sessionAmountUsed').value) || 0;
+    const editingOwnAmount = isEdit ? (Number((log.find(l => l.SessionID === editingSessionId) || {}).SessionAmountUsed) || 0) : 0;
+    const baseline = (Number(enr.AmountUsedTotal) || 0) - editingOwnAmount;
+    const projected = baseline + enteredAmount;
+    const total = Number(enr.TotalAmount);
+    if(projected > total){
+      const proceed = confirm(
+        `This would put ${activeStudent.StudentName} at $${projected}/$${total} used — over the package total.\n\n` +
+        `Click Cancel to fix the amount, or start a new package/individual sessions instead from the dashboard.\n` +
+        `Click OK to log it anyway.`
+      );
+      if(!proceed) return;
+    }
+  }
+
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = isEdit ? 'Updating…' : 'Saving…';
   const payload = {
@@ -717,6 +789,7 @@ document.getElementById('entryForm').addEventListener('submit', async (e) => {
     enrollmentId: selectedEnrollmentId,
     sessionDate: document.getElementById('sessionDate').value,
     sessionsUsed: document.getElementById('sessionsUsed').value,
+    sessionAmountUsed: document.getElementById('sessionAmountUsed').value || 0,
     finance: document.getElementById('finance').value.trim(),
     comments: document.getElementById('comments').value.trim(),
     internalNote: document.getElementById('internalNote').value.trim(),
@@ -752,10 +825,12 @@ const amountPaidField = document.getElementById('amountPaidField');
 
 function toggleEnrollFields(){
   const type = document.querySelector('input[name="enrollType"]:checked').value;
-  const isPkg = type === 'Package';
-  packageSizeField.style.display = isPkg ? 'block' : 'none';
-  totalAmountField.style.display = isPkg ? 'block' : 'none';
-  amountPaidField.style.display = isPkg ? 'block' : 'none';
+  const isSessionPkg = type === 'Package';
+  const isAnyPkg = type === 'Package' || type === 'PackageMoney';
+  packageSizeField.style.display = isSessionPkg ? 'block' : 'none';
+  totalAmountField.style.display = isAnyPkg ? 'block' : 'none';
+  amountPaidField.style.display = isAnyPkg ? 'block' : 'none';
+  document.getElementById('totalAmount').previousElementSibling.textContent = type === 'PackageMoney' ? 'Total package value ($)' : 'Total package amount ($)';
 }
 document.querySelectorAll('input[name="enrollType"]').forEach(r => r.addEventListener('change', toggleEnrollFields));
 
@@ -779,6 +854,8 @@ function openStudentModal(id){
       document.querySelector(`input[name="enrollType"][value="${s.EnrollmentType}"]`).checked = true;
       if(s.EnrollmentType === 'Package'){
         document.getElementById('packageSize').value = s.PackageSize;
+      }
+      if(s.EnrollmentType === 'Package' || s.EnrollmentType === 'PackageMoney'){
         document.getElementById('totalAmount').value = s.TotalAmount || '';
         document.getElementById('amountPaid').value = s.AmountPaid || '';
       }
@@ -808,13 +885,15 @@ studentForm.addEventListener('submit', async (e) => {
   const id = document.getElementById('editingId').value;
   const btn = document.getElementById('saveStudentBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
-  const isPkg = document.querySelector('input[name="enrollType"]:checked').value === 'Package';
+  const enrollType = document.querySelector('input[name="enrollType"]:checked').value;
+  const isPkg = enrollType === 'Package';
+  const isAnyPkg = enrollType === 'Package' || enrollType === 'PackageMoney';
   const enrollmentFields = {
-    enrollmentType: document.querySelector('input[name="enrollType"]:checked').value,
+    enrollmentType: enrollType,
     startDate: document.getElementById('enrollStartDate').value || '',
     packageSize: isPkg ? document.getElementById('packageSize').value : '',
-    totalAmount: isPkg ? (document.getElementById('totalAmount').value || 0) : '',
-    amountPaid: isPkg ? (document.getElementById('amountPaid').value || 0) : ''
+    totalAmount: isAnyPkg ? (document.getElementById('totalAmount').value || 0) : '',
+    amountPaid: isAnyPkg ? (document.getElementById('amountPaid').value || 0) : ''
   };
 
   try{
