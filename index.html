@@ -85,6 +85,10 @@
   .chart-wrap{position:relative;height:210px;margin:0.5rem 0 1.25rem;}
 
   .modal-bg{position:fixed;inset:0;background:rgba(22,50,79,0.45);display:none;align-items:center;justify-content:center;padding:1rem;z-index:50;}
+  .login-gate{position:fixed;inset:0;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:1rem;z-index:100;}
+  .login-gate.hidden{display:none;}
+  .login-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:2rem;max-width:340px;width:100%;box-shadow:0 8px 30px rgba(22,50,79,0.12);}
+  .login-card input{width:100%;}
   .modal-bg.show{display:flex;}
   .modal{background:#fff;border-radius:12px;padding:1.75rem;max-width:420px;width:100%;}
   .modal h3{font-family:'Fraunces',serif;margin:0 0 1.1rem;}
@@ -109,6 +113,24 @@
 </style>
 </head>
 <body>
+
+<div id="loginGate" class="login-gate">
+  <div class="login-card">
+    <h1 style="font-family:'Fraunces',serif;font-size:1.4rem;margin:0 0 0.3rem;">Coaching log</h1>
+    <p style="color:var(--ink-soft);font-size:0.88rem;margin:0 0 1.5rem;">Enter the password to continue.</p>
+    <form id="loginForm">
+      <div class="field">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" required autocomplete="current-password">
+      </div>
+      <div class="msg" id="loginMsg"></div>
+      <button type="submit" id="loginBtn" style="width:100%;margin-top:0.75rem;">Log in</button>
+      <button type="button" id="forgotPasswordBtn" class="btn-ghost btn-sm" style="width:100%;margin-top:0.6rem;">Forgot password?</button>
+    </form>
+  </div>
+</div>
+
+<div id="appRoot" class="hidden">
 <div class="wrap">
 
   <header>
@@ -116,7 +138,10 @@
       <h1>Coaching log</h1>
       <p>Students, sessions, and progress in one place</p>
     </div>
-    <span class="status-pill" id="statusPill">connecting…</span>
+    <div style="display:flex;align-items:center;gap:0.6rem;">
+      <span class="status-pill" id="statusPill">connecting…</span>
+      <button type="button" class="btn-ghost btn-sm" id="logoutBtn">Log out</button>
+    </div>
   </header>
 
   <!-- LANDING VIEW -->
@@ -203,6 +228,8 @@
 
   <button type="button" class="fab" id="addFab" title="Add student">+</button>
 </div>
+</div>
+<!-- /appRoot -->
 
 <!-- ADD/EDIT STUDENT MODAL -->
 <div class="modal-bg" id="studentModalBg">
@@ -257,6 +284,78 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR075kUlqeEygo4SE4O
 // what the parent-facing view.html receives.
 const ADMIN_KEY = "aba47f4c2ebf20567ae4de63";
 const VIEWER_BASE = window.location.href.replace(/index\.html$/,'').replace(/\/?$/,'/') + "view.html";
+
+// ---- login gate ----
+const loginGate = document.getElementById('loginGate');
+const appRoot = document.getElementById('appRoot');
+const loginForm = document.getElementById('loginForm');
+const loginMsg = document.getElementById('loginMsg');
+
+function showApp(){
+  loginGate.classList.add('hidden');
+  appRoot.classList.remove('hidden');
+  loadAll();
+}
+
+if(localStorage.getItem('coachLoggedIn') === 'true'){
+  showApp();
+}
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Checking…';
+  loginMsg.className = 'msg';
+  try{
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'login', password: document.getElementById('loginPassword').value })
+    });
+    const result = await res.json();
+    if(result.status === 'success'){
+      localStorage.setItem('coachLoggedIn', 'true');
+      showApp();
+    }else{
+      loginMsg.textContent = 'Incorrect password.';
+      loginMsg.className = 'msg show err';
+    }
+  }catch(err){
+    loginMsg.textContent = 'Could not check password. Try again.';
+    loginMsg.className = 'msg show err';
+  }finally{
+    btn.disabled = false; btn.textContent = 'Log in';
+  }
+});
+
+document.getElementById('forgotPasswordBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('forgotPasswordBtn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  loginMsg.className = 'msg';
+  try{
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'forgotPassword' })
+    });
+    const result = await res.json();
+    if(result.status === 'success'){
+      loginMsg.textContent = 'Password sent to your email.';
+      loginMsg.className = 'msg show ok';
+    }else{
+      loginMsg.textContent = 'Could not send email. Try again.';
+      loginMsg.className = 'msg show err';
+    }
+  }catch(err){
+    loginMsg.textContent = 'Could not send email. Try again.';
+    loginMsg.className = 'msg show err';
+  }finally{
+    btn.disabled = false; btn.textContent = 'Forgot password?';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  localStorage.removeItem('coachLoggedIn');
+  location.reload();
+});
 
 const statusPill = document.getElementById('statusPill');
 const studentsGrid = document.getElementById('studentsGrid');
@@ -869,6 +968,37 @@ function openStudentModal(id){
 }
 
 function openNewEnrollmentModal(s){
+  const current = (s.Enrollments || []).find(e => e.EnrollmentID === s.CurrentEnrollmentID);
+  if(current){
+    let inProgress = false;
+    let detail = '';
+    if(current.EnrollmentType === 'Package'){
+      const size = Number(current.PackageSize);
+      const used = Number(current.SessionsUsed) || 0;
+      if(!current.PackageSize || current.PackageSize === 'N/A' || isNaN(size)){
+        inProgress = true;
+        detail = `${s.StudentName}'s current package has a flexible size, so it's never automatically marked complete.`;
+      }else if(used < size){
+        inProgress = true;
+        detail = `${s.StudentName} still has ${size - used} session${(size-used) === 1 ? '' : 's'} left on their current package (${used}/${size} used).`;
+      }
+    }else if(current.EnrollmentType === 'PackageMoney'){
+      const total = Number(current.TotalAmount) || 0;
+      const used = Number(current.AmountUsedTotal) || 0;
+      if(total > 0 && used < total){
+        inProgress = true;
+        detail = `${s.StudentName} still has $${total - used} left on their current money package ($${used}/$${total} used).`;
+      }
+    }
+    if(inProgress){
+      const proceed = confirm(
+        `${detail}\n\nDo you still want to start a new package/individual sessions for them, or would you rather keep logging against the current one?\n\n` +
+        `Click OK to start a new one anyway, or Cancel to go back.`
+      );
+      if(!proceed) return;
+    }
+  }
+
   studentForm.reset();
   stuNameField.style.display = 'none';
   document.getElementById('modalMode').value = 'newEnrollment';
@@ -974,7 +1104,7 @@ document.getElementById('exportOneBtn').addEventListener('click', () => {
   XLSX.writeFile(wb, activeStudent.StudentName.replace(/\s+/g,'_') + '_sessions.xlsx');
 });
 
-loadAll();
+// Data loads only after a successful login — see showApp() near the top.
 </script>
 </body>
 </html>
